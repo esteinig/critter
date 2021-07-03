@@ -1,3 +1,3 @@
-""" Beastling main class """
+""" Critter main class """
 
 
