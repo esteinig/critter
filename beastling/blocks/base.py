@@ -1,13 +1,14 @@
-""" Base blocks used to build higher level blocks """
+""" Base blocks mirroring BEAST 2.5 """
 
 from math import inf as infinity
 from pydantic import BaseModel, validator
 from beastling.utils import get_uuid
+from typing import List
 
 
 class RealParameter(BaseModel):
     """ <parameter/> """
-    id: str = get_uuid()
+    id: str
     name: str
     value: float
     lower: float = -infinity
@@ -17,12 +18,40 @@ class RealParameter(BaseModel):
 
     def __str__(self):
 
-        return f'<parameter id="RealParameter.{self.id}" ' \
+        return f'<parameter id="{self.id}" ' \
                f'spec="parameter.RealParameter" ' \
                f'estimate="{str(self.estimate).lower()}" ' \
                f'lower="{str(self.lower)}" ' \
                f'upper="{str(self.upper)}" ' \
-               f'name="{self.name}">{self.value}</parameter>'
+               f'name="{self.name}">{self.value}' \
+               f'</parameter>'
+
+
+class Distribution(BaseModel):
+    """ Distribution base class """
+
+    id: str
+    params: List[RealParameter] = list()
+
+    # sub model attributes match original name
+    _attr_name = {
+        'real_space': 'meanInRealSpace',
+        'mode': 'mode'
+    }
+
+    def __str__(self):
+        _param_block = "".join([str(param) for param in self.params])
+        return f'<{self.__class__.__name__} id="{self.id}" ' \
+               f'{self._get_distr_config()} name="distr">' \
+               f'{_param_block}</{self.__class__.__name__}>'
+
+    def _get_distr_config(self) -> str:
+        """ Format additional subclass attributes into string """
+        return ' '.join([
+            f'{self._attr_name[attr]}="{value}"'
+            for attr, value in vars(self).items()
+            if attr not in ('id', 'name', 'params')
+        ])
 
 
 class Operator(BaseModel):
