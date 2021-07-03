@@ -1,0 +1,9 @@
+click
+rich
+colorama
+pyyaml
+black
+pytest
+requests
+pyjwt
+typer

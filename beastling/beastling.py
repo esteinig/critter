@@ -1,0 +1,3 @@
+""" Beastling main class """
+
+

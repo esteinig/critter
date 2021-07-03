@@ -1,0 +1,2 @@
+recursive-include beastling/public *
+recursive-include beastling/templates *
