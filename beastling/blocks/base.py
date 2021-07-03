@@ -1,8 +1,7 @@
 """ Base blocks mirroring BEAST 2.5 """
 
 from math import inf as infinity
-from pydantic import BaseModel, validator
-from beastling.utils import get_uuid
+from pydantic import BaseModel
 from typing import List
 
 
