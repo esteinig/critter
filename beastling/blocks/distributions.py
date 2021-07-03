@@ -8,6 +8,7 @@ from typing import List
 
 class Uniform(Distribution):
     id: str = f"Uniform.{get_uuid(short=True)}"
+    params: List[RealParameter] = list()
 
 
 class Exponential(Distribution):
