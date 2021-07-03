@@ -16,7 +16,6 @@ class RealParameter(BaseModel):
     estimate: bool = False
 
     def __str__(self):
-
         return f'<parameter id="{self.id}" ' \
                f'spec="parameter.RealParameter" ' \
                f'estimate="{str(self.estimate).lower()}" ' \
@@ -28,10 +27,10 @@ class RealParameter(BaseModel):
 
 class Distribution(BaseModel):
     """ Distribution base class """
-
     id: str
-    params: List[RealParameter] = list()
-
+    # parameters defined in subclasses as RealParameters
+    # this let's users config the parameter block id
+    _params: List[RealParameter] = list()
     # sub model attributes match original name
     _attr_name = {
         'real_space': 'meanInRealSpace',
@@ -39,13 +38,14 @@ class Distribution(BaseModel):
     }
 
     def __str__(self):
-        _param_block = "".join([str(param) for param in self.params])
+
+        _param_block = "".join([str(param) for param in self._params])
         return f'<{self.__class__.__name__} id="{self.id}" ' \
                f'{self._get_distr_config()} name="distr">' \
                f'{_param_block}</{self.__class__.__name__}>'
 
     def _get_distr_config(self) -> str:
-        """ Format additional subclass attributes into string """
+        """ Get optional distribution configs from subclasses """
         return ' '.join([
             f'{self._attr_name[attr]}="{value}"'
             for attr, value in vars(self).items()

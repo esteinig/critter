@@ -23,7 +23,6 @@ def test_real_parameter_create_success():
     assert type(param.id) == str  # is uuid correctly returned as str
 
 
-
 def test_real_parameter_create_failure():
     """
     GIVEN: RealParameter with invalid values
@@ -39,7 +38,6 @@ def test_real_parameter_create_failure():
         RealParameter(id='test', name="alpha", value=1.0, estimate=None)
         RealParameter(id='test', name="alpha", value=1.0, lower=None)
         RealParameter(id='test', name="alpha", value=1.0, upper=None)
-
 
 
 def test_real_parameter_xml_string():
