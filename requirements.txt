@@ -1,9 +1,10 @@
 click
 rich
+fastapi
 colorama
 pyyaml
 black
 pytest
+pydantic
 requests
-pyjwt
 typer

@@ -10,12 +10,13 @@ setup(
     install_requires=[
         "click",
         "rich",
+        "fastapi",
         "colorama",
         "pyyaml",
         "black",
         "pytest",
+        "pydantic",
         "requests",
-        "pyjwt",
         "typer"
     ],
     entry_points="""
