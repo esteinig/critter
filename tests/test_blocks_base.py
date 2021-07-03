@@ -1,7 +1,9 @@
 import pytest
 
-from beastling.blocks.base import RealParameter, Distribution, infinity
 from pydantic import ValidationError
+from beastling.blocks.base import RealParameter, Distribution, infinity
+
+# Remember to check Pydantic --> usage/models/#data-conversion
 
 
 def test_real_parameter_create_success():
@@ -21,9 +23,10 @@ def test_real_parameter_create_success():
     assert type(param.id) == str  # is uuid correctly returned as str
 
 
+
 def test_real_parameter_create_failure():
     """
-    GIVEN: RealParameter with valid name and invalid value
+    GIVEN: RealParameter with invalid values
     WHEN:  RealParameter instance is created
     THEN:  RealParameter instances raises pydantic.ValidationError
     """
@@ -32,12 +35,11 @@ def test_real_parameter_create_failure():
         RealParameter(id=None, name="alpha", value=1.0)
         RealParameter(id='test', name=None, value=1.0)
         RealParameter(id='test', name="alpha", value=None)
-        RealParameter(id='test', name='alpha', value=1)  # pydantic --> usage/models/#data-conversion
         RealParameter(id='test', name="alpha", value=1.0, dimension=None)
         RealParameter(id='test', name="alpha", value=1.0, estimate=None)
         RealParameter(id='test', name="alpha", value=1.0, lower=None)
         RealParameter(id='test', name="alpha", value=1.0, upper=None)
-        RealParameter(id='test', name="alpha", value=1.0)
+
 
 
 def test_real_parameter_xml_string():
