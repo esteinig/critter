@@ -1,8 +1,8 @@
 """ Distribution models """
 
-from beastling.blocks.base import Distribution
-from beastling.blocks.base import RealParameter
-from beastling.utils import get_uuid
+from critter.blocks.base import Distribution
+from critter.blocks.base import RealParameter
+from critter.utils import get_uuid
 from typing import List
 
 

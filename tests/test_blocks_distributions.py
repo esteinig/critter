@@ -1,13 +1,13 @@
 import pytest
 
 from pydantic import ValidationError
-from beastling.blocks.distributions import RealParameter
-from beastling.blocks.distributions import Distribution
-from beastling.blocks.distributions import Uniform
-from beastling.blocks.distributions import Exponential
-from beastling.blocks.distributions import Gamma
-from beastling.blocks.distributions import Beta
-from beastling.blocks.distributions import LogNormal
+from critter.blocks.distributions import RealParameter
+from critter.blocks.distributions import Distribution
+from critter.blocks.distributions import Uniform
+from critter.blocks.distributions import Exponential
+from critter.blocks.distributions import Gamma
+from critter.blocks.distributions import Beta
+from critter.blocks.distributions import LogNormal
 
 
 def test_distributions_create_success():

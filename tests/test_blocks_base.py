@@ -1,7 +1,7 @@
 import pytest
 
 from pydantic import ValidationError
-from beastling.blocks.base import RealParameter, Distribution, infinity
+from critter.blocks.base import RealParameter, Distribution, infinity
 
 # Remember to check Pydantic --> usage/models/#data-conversion
 
