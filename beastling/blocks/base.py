@@ -30,7 +30,7 @@ class Distribution(BaseModel):
     id: str
     # parameters defined in subclasses as RealParameters
     # this let's users config the parameter block id
-    _params: List[RealParameter] = list()
+    params: List[RealParameter] = list()
     # sub model attributes match original name
     _attr_name = {
         'real_space': 'meanInRealSpace',
@@ -39,7 +39,7 @@ class Distribution(BaseModel):
 
     def __str__(self):
 
-        _param_block = "".join([str(param) for param in self._params])
+        _param_block = "".join([str(param) for param in self.params])
         return f'<{self.__class__.__name__} id="{self.id}" ' \
                f'{self._get_distr_config()} name="distr">' \
                f'{_param_block}</{self.__class__.__name__}>'
@@ -47,7 +47,7 @@ class Distribution(BaseModel):
     def _get_distr_config(self) -> str:
         """ Get optional distribution configs from subclasses """
         return ' '.join([
-            f'{self._attr_name[attr]}="{value}"'
+            f'{self._attr_name[attr] if attr in self._attr_name.keys() else attr}="{value}"'
             for attr, value in vars(self).items()
             if attr not in ('id', 'name', 'params')
         ])

@@ -58,14 +58,15 @@ def test_base_distribution_create_success():
     WHEN:  Distribution instance is created
     THEN:  Distribution instance is created with valid defaults
     """
-    no_param_distr = Distribution(id="Gamma")
-    assert no_param_distr.id == "Gamma"
+    no_param_distr = Distribution(id="Base")
+    assert no_param_distr.id == "Base"
     assert no_param_distr.params == list()
     assert type(no_param_distr.id) == str
 
     param1 = RealParameter(id="test1", name="alpha", value=2.0)
     param2 = RealParameter(id="test2", name="beta", value=2.0)
-    param_distr = Distribution(id="Gamma", params=[param1, param2])
+    param_distr = Distribution(id="Base")
+    param_distr.params = [param1, param2]
     assert param_distr.params == [param1, param2]
     assert type(param_distr.params[0]) == RealParameter
     assert type(param_distr.params[1]) == RealParameter
@@ -77,7 +78,7 @@ def test_base_distribution_attr_config_complete():
     WHEN:   Distribution instance has been created
     THEN:   Distribution instance config is complete
     """
-    distr = Distribution(id="Gamma")
+    distr = Distribution(id="Base")
     for key, value in {'mode': 'mode', 'real_space': 'meanInRealSpace'}.items():
         assert key in distr._attr_name.keys()
         assert value in distr._attr_name.values()
@@ -89,7 +90,7 @@ def test_base_distribution_attr_config_string():
     WHEN:   Distribution instance calls _get_distr_config
     THEN:   Distribution instance returns empty config string
     """
-    distr = Distribution(id="Gamma")
+    distr = Distribution(id="Base")
     assert distr._get_distr_config() == ""
 
 
@@ -105,7 +106,8 @@ def test_base_distribution_xml_string():
 
     param1 = RealParameter(id='test1', name="alpha", value=2.0)
     param2 = RealParameter(id='test2', name="beta", value=2.0)
-    xml = str(Distribution(id="Gamma", params=[param1, param2]))
-    param_xml = f'<Distribution id="Gamma"  name="distr">{str(param1)}{str(param2)}</Distribution>'  # space!
-    assert xml == param_xml
+    xml = Distribution(id="Base")
+    xml.params = [param1, param2]
+    param_xml = f'<Distribution id="Base"  name="distr">{str(param1)}{str(param2)}</Distribution>'  # space!
+    assert str(xml) == param_xml
 
