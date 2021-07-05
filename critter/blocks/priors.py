@@ -2,101 +2,101 @@ from critter.blocks.base import Prior
 
 
 class Rate(Prior):
-    name = 'rate'
-    idx = 'ClockPrior.c'
-    x = 'clockRate.c'
+    slice_id = 'rate'
+    prior_id = 'ClockPrior'
+    param_id = 'clockRate'
 
 
 class UCED(Prior):
-    name = 'uced'
-    idx = 'UCMeanRatePrior.c'
-    x = 'ucedMean.c'
+    slice_id = 'uced'
+    prior_id = 'UCMeanRatePrior'
+    param_id = 'ucedMean'
 
 
 class UCLDMean(Prior):
-    name = 'ucld_mean'
-    idx = 'MeanRatePrior.c'
-    x = 'ucldMean.c'
+    slice_id = 'ucld_mean'
+    prior_id = 'MeanRatePrior'
+    param_id = 'ucldMean'
 
 
 class UCLDSD(Prior):
-    name = 'ucld_sd'
-    idx = 'ucldStdevPrior.c'
-    x = 'ucldStdev.c'
+    slice_id = 'ucld_sd'
+    prior_id = 'ucldStdevPrior'
+    param_id = 'ucldStdev'
 
 
 # Model priors for Birth-Death Skyline Serial
 class Origin(Prior):
-    name = 'origin'
-    idx = 'originPrior_BDSKY_Serial.t'
-    x = 'origin_BDSKY_Serial.t'
+    slice_id = 'origin'
+    prior_id = 'originPrior_BDSKY_Serial'
+    param_id = 'origin_BDSKY_Serial'
 
 
 class ReproductiveNumberBDSS(Prior):
-    name = 'reproductiveNumber'
-    idx = 'reproductiveNumberPrior_BDSKY_Serial.t'
-    x = 'reproductiveNumber_BDSKY_Serial.t'
+    slice_id = 'reproductiveNumber'
+    prior_id = 'reproductiveNumberPrior_BDSKY_Serial'
+    param_id = 'reproductiveNumber_BDSKY_Serial'
 
 
 class SamplingProportionBDSS(Prior):
-    name = 'samplingProportion'
-    idx = 'samplingProportionPrior_BDSKY_Serial.t'
-    x = 'samplingProportion_BDSKY_Serial.t'
+    slice_id = 'samplingProportion'
+    prior_id = 'samplingProportionPrior_BDSKY_Serial'
+    param_id = 'samplingProportion_BDSKY_Serial'
 
 
 class BecomeUninfectiousBDSS(Prior):
-    name = 'becomeUninfectious'
-    idx = 'becomeUninfectiousRatePrior_BDSKY_Serial.t'
-    x = 'becomeUninfectiousRate_BDSKY_Serial.t'
+    slice_id = 'becomeUninfectious'
+    prior_id = 'becomeUninfectiousRatePrior_BDSKY_Serial'
+    param_id = 'becomeUninfectiousRate_BDSKY_Serial'
 
 
 # Contemporary model priors
 class OriginBDSC(Prior):
-    name = 'origin'
-    idx = 'originPrior_BDSKY_Contempt'
-    x = 'origin_BDSKY_Contemp.t'
+    slice_id = 'origin'
+    prior_id = 'originPrior_BDSKY_Contempt'
+    param_id = 'origin_BDSKY_Contemp'
 
 
 class ReproductiveNumberBDSC(Prior):
-    name = 'reproductiveNumber'
-    idx = 'reproductiveNumberPrior_BDSKY_Contemp.t'
-    x = 'reproductiveNumber_BDSKY_Contemp.t'
+    slice_id = 'reproductiveNumber'
+    prior_id = 'reproductiveNumberPrior_BDSKY_Contemp'
+    param_id = 'reproductiveNumber_BDSKY_Contemp'
 
 
 class RhoBDSC(Prior):
-    name = 'rho'
-    idx = 'rhoPrior_BDSKY_Contemp.t'
-    x = 'rho_BDSKY_Contemp.t'
+    slice_id = 'rho'
+    prior_id = 'rhoPrior_BDSKY_Contemp'
+    param_id = 'rho_BDSKY_Contemp'
 
 
 class BecomeUninfectiousBDSC(Prior):
-    name = 'becomeUninfectious'
-    idx = 'becomeUninfectiousRatePrior_BDSKY_Contemp.t'
-    x = 'becomeUninfectiousRate_BDSKY_Contemp.t'
+    slice_id = 'becomeUninfectious'
+    prior_id = 'becomeUninfectiousRatePrior_BDSKY_Contemp'
+    param_id = 'becomeUninfectiousRate_BDSKY_Contemp'
 
 
 # MultiType BirthDeath Priors
 class ReproductiveNumberMTBD(Prior):
-    idx = 'RPrior.t'
-    x = 'R0.t'
+    prior_id = 'RPrior'
+    param_id = 'R0'
 
 
 class SamplingProportionMTBD(Prior):
-    idx = 'samplingProportionPrior.t'
-    x = 'samplingProportion.t'
+    prior_id = 'samplingProportionPrior'
+    param_id = 'samplingProportion'
 
     # Using a distribution component for prior here, not sure why:
     @property
     def xml(self) -> str:
-        dim, incl = self.get_include_string()
+        dim, incl = self._get_include_string()
         return f"""
-        <distribution id="{self.idx}" spec="multitypetree.distributions.ExcludablePrior" x="@{self.x}">
-            <xInclude id="samplingProportionXInclude.t" spec="parameter.BooleanParameter" dimension="{dim}">{incl}</xInclude>
-            {self.distribution.get_xml()}
+        <distribution id="{self.prior_id}" spec="multitypetree.distributions.ExcludablePrior" x="@{self.param_id}">
+        <xInclude id="samplingProportionXInclude" spec="parameter.BooleanParameter" dimension="{dim}">{incl}</xInclude>
+        {self.distribution.xml}
         </distribution>
         """
 
-    def get_include_string(self) -> (int, str):
+    def _get_include_string(self) -> (int, str):
         incl = []
         for v in self.initial:
             if v != 0:
@@ -108,31 +108,31 @@ class SamplingProportionMTBD(Prior):
 
 
 class BecomeUninfectiousMTBD(Prior):
-    idx = 'becomeUninfectiousRatePrior.t'
-    x = 'becomeUninfectiousRate.t'
+    prior_id = 'becomeUninfectiousRatePrior'
+    param_id = 'becomeUninfectiousRate'
 
 
 class RateMatrix(Prior):
-    idx = 'rateMatrixPrior.t'
-    x = 'rateMatrix.t'
+    prior_id = 'rateMatrixPrior'
+    param_id = 'rateMatrix'
 
 
 # Model priors for Coalescent Bayesian Skyline
 
 class PopulationSize(Prior):
-    name = 'bPopSizes'
-    idx = ''  # no XML prior necessary  # todo: check if break compatibility, changed to '' from None
-    x = 'bPopSizes.t'
+    slice_id = 'bPopSizes'
+    prior_id = ''  # no XML prior necessary  # todo: check if break compatibility, changed to '' from None
+    param_id = 'bPopSizes'
 
 
 class GroupSize(Prior):
-    name = 'bGroupSizes'
-    idx = ''  # no XML prior necessary
-    x = 'bGroupSizes.t'
+    slice_id = 'bGroupSizes'
+    prior_id = ''  # no XML prior necessary
+    param_id = 'bGroupSizes'
     param_spec = 'parameter.IntegerParameter'
 
     @property
     def state_node_group_size(self):
 
-        return f'<stateNode id="bGroupSizes.t" spec="parameter.IntegerParameter" ' \
+        return f'<stateNode id="bGroupSizes" spec="parameter.IntegerParameter" ' \
             f'dimension="{self.dimension}">{self.initial}</stateNode>'

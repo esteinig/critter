@@ -1,7 +1,8 @@
 import pytest
 
 from pydantic import ValidationError
-from critter.blocks.base import RealParameter, Distribution, infinity
+from critter.blocks.base import RealParameter, Distribution, Prior, infinity
+from critter.blocks.distributions import Exponential
 
 # Remember to check Pydantic --> usage/models/#data-conversion
 
@@ -127,4 +128,14 @@ def test_base_distribution_default_xml_string():
     xml.params = [param1, param2]
     param_xml = f'<Distribution id="Base"  name="distr">{str(param1)}{str(param2)}</Distribution>'  # space!
     assert str(xml) == param_xml
+
+
+def test_prior_create_success():
+    """
+    GIVEN: Prior with valid required params including distribution
+    WHEN:  Prior instance is created
+    THEN:  Prior instance is created with valid defaults
+    """
+
+    prior = Prior(distribution=Exponential(mean=0.5), initial=1.0)
 

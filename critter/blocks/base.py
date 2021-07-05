@@ -2,7 +2,7 @@
 
 from math import inf as infinity
 from pydantic import BaseModel, Extra
-from typing import List, Tuple
+from typing import List
 from critter.errors import CritterError
 
 
@@ -66,30 +66,23 @@ class Distribution(BaseModel):
 
 
 class Prior(BaseModel):
-
     """ Base class for priors """
-
+    prior_id: str  # prior identifier defined in all prior subclasses (id="")
+    param_id: str  # param identifier that the prior operates on (@)
     distribution: Distribution or List[Distribution]
-    initial: float or list = None
+    initial: float or list
     lower: float = -infinity
     upper: float = infinity
     dimension: int = 1
-
-    sliced = False  # for sliced SamplingProportion prior
-    intervals = []  # for sliced SamplingProportion prior
-
-    prior_name: str = None  # prior identifier name defined in model subclasses
-    prior_id: str = None  # prior identifier defined in all prior subclasses
-    param_id: str = None  # param identifier defined in all prior subclasses
-
+    slice_id: str = None  # prior identifier used in slices and slice functions (@)
+    sliced: bool = False  # for sliced SamplingProportion prior
+    intervals: list = []  # for sliced SamplingProportion prior
     scw: str = None  # scale operator weight defined in clock subclasses
     scx: str = None  # scale identifier defined in clock subclasses
-
-    param_spec = "parameter.RealParameter"  # changes in MTDB model to IntegerParameter
+    param_spec: str = "parameter.RealParameter"  # changes in MTDB model to IntegerParameter
 
     @property
     def xml(self) -> str:
-
         if not self.sliced:
             # Normal singular prior distribution
             return f"""
@@ -102,7 +95,7 @@ class Prior(BaseModel):
             sliced_priors = ''
             for i, distribution in enumerate(self.distribution):
                 sliced_priors += f"""
-                    <prior id="{self.prior_name}Prior{i+1}" name="distribution" x="@{self.prior_name}{i+1}">
+                    <prior id="{self.slice_id}Prior{i+1}" name="distribution" x="@{self.slice_id}{i+1}">
                         {distribution.xml}
                     </prior>
                 """
@@ -114,23 +107,19 @@ class Prior(BaseModel):
 
     @property
     def xml_param(self) -> str:
-
         # Allow for higher dimensions using slices
         if isinstance(self.initial, list):
             initial = " ".join(str(i) for i in self.initial)
         else:
             initial = self.initial
-
         param = RealParameter(  # TODO: validators on RealParameter
             id=f"{self.param_id}", name="stateNode", value=initial, spec=self.param_spec,
             dimension=self.dimension, lower=self.lower, upper=self.upper
         )
-
         return str(param)
 
     @property
     def xml_logger(self) -> str:
-
         return f'<log idref="{self.param_id}"/>'
 
     # Clock scale operator for priors
@@ -141,55 +130,53 @@ class Prior(BaseModel):
     # Sliced priors
     @property
     def xml_slice_function(self) -> str:
-
         if not self.sliced:
             return ''
         else:
             xml = ''
             for i, interval in enumerate(self.initial):
-                xml += f'<function spec="beast.core.util.Slice" id="{self.prior_name}{i+1}" ' \
+                xml += f'<function spec="beast.core.util.Slice" id="{self.slice_id}{i+1}" ' \
                     f'arg="@{self.param_id}" index="{i}" count="1"/>\n'
             return xml
 
     @property
     def xml_slice_rate(self) -> str:
-
         if not self.sliced:
             return ''
         else:
             intervals = " ".join(str(i) for i in self.intervals)
-            if self.prior_name == 'samplingProportion':
+            if self.slice_id == 'samplingProportion':
                 rate_change_times = 'samplingRateChangeTimes'
-            elif self.prior_name == 'rho':
+            elif self.slice_id == 'rho':
                 rate_change_times = 'samplingRateChangeTimes'
-            elif self.prior_name == 'reproductiveNumber':
+            elif self.slice_id == 'reproductiveNumber':
                 rate_change_times = 'birthRateChangeTimes'
-            elif self.prior_name == 'becomeUninfectious':
+            elif self.slice_id == 'becomeUninfectious':
                 rate_change_times = 'deathRateChangeTimes'
             else:
                 raise CritterError(
-                    'Rate change times are only defined for: '
-                    'rho, samplingProportion, reproductiveNumber and becomeUninfectious'
+                    'Rate change times (slices or intervals) are only defined for: '
+                    'rho and samplingProportion (<samplingRateChangeTimes/>), '
+                    'reproductiveNumber (<birthRateChangeTimes/>) and'
+                    'becomeUninfectious (<deathRateChangeTime/>) priors'
                 )
 
             return f'<{rate_change_times} spec="beast.core.parameter.RealParameter" value="{intervals}"/>'
 
     @property
     def xml_slice_logger(self) -> str:
-
         if not self.sliced:
             return ''
         else:
             loggers = ''
             for i, value in enumerate(self.initial):
-                loggers += f'<log idref="{self.prior_name}{i+1}"/>\n'
+                loggers += f'<log idref="{self.slice_id}{i+1}"/>\n'
             return loggers
 
 
 class Operator(BaseModel):
     """ <operator/> """
     pass
-
 
 
 # def check_init(self):
