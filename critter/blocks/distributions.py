@@ -12,11 +12,11 @@ class LogNormal(Distribution):
     id: str = f"LogNormal.{get_uuid(short=True)}"
     real_space: bool = False
 
-    # RealParameter specific configs (init on class init)
+    # RealParameter specific configs (params init on distribution init)
     def __init__(
         self,
-        mean: float = 2.0,
-        sd: float = 1.5,
+        mean: float,
+        sd: float,
         mean_id: str = f'RealParameter.{get_uuid(short=True)}',
         sd_id: str = f'RealParameter.{get_uuid(short=True)}',
         **distr_config  # passing on distribution config fields
@@ -37,12 +37,12 @@ class LogNormal(Distribution):
 # PATTERN: DISTRIBUTION WITHOUT PARAMS
 class Uniform(Distribution):
     id: str = f"Uniform.{get_uuid(short=True)}"
-    
+
 
 class Exponential(Distribution):
     id: str = f"Exponential.{get_uuid(short=True)}"
 
-    def __init__(self, mean: float = 1.0, mean_id: str = f'RealParameter.{get_uuid(short=True)}', **distr_config):
+    def __init__(self, mean: float, mean_id: str = f'RealParameter.{get_uuid(short=True)}', **distr_config):
         super().__init__(**distr_config)
         self.mean = mean
         self.mean_id = mean_id
@@ -56,8 +56,8 @@ class Beta(Distribution):
 
     def __init__(
         self,
-        alpha: float = 1.25,
-        beta: float = 1.0,
+        alpha: float,
+        beta: float,
         alpha_id: str = f'RealParameter.{get_uuid(short=True)}',
         beta_id: str = f'RealParameter.{get_uuid(short=True)}',
         **distr_config
@@ -79,8 +79,8 @@ class Gamma(Distribution):
 
     def __init__(
         self,
-        alpha: float = 1.0,
-        beta: float = 1.25,
+        alpha: float,
+        beta: float,
         alpha_id: str = f'RealParameter.{get_uuid(short=True)}',
         beta_id: str = f'RealParameter.{get_uuid(short=True)}',
         **distr_config

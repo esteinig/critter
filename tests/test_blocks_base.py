@@ -30,12 +30,23 @@ def test_real_parameter_create_failure():
     THEN:  RealParameter instances raises pydantic.ValidationError
     """
 
+    # Required is null
     with pytest.raises(ValidationError):
         RealParameter(id=None, name="alpha", value=1.0)
     with pytest.raises(ValidationError):
         RealParameter(id='test', name=None, value=1.0)
     with pytest.raises(ValidationError):
         RealParameter(id='test', name="alpha", value=None)
+
+    # Missing required
+    with pytest.raises(ValidationError):
+        RealParameter(name="alpha", value=1.0)
+    with pytest.raises(ValidationError):
+        RealParameter(id='test', value=1.0)
+    with pytest.raises(ValidationError):
+        RealParameter(id='test', name="alpha")
+
+    # Defaults changed to null
     with pytest.raises(ValidationError):
         RealParameter(id='test', name="alpha", value=1.0, dimension=None)
     with pytest.raises(ValidationError):

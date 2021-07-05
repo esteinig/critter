@@ -15,35 +15,47 @@ def test_distributions_create_id_success():
     WHEN:  Distribution subclass instance is created
     THEN:  Distribution subclass instance is created with valid ID
     """
-    uniform = Uniform(id='test')
-    exponential = Exponential(id='test')
-    beta = Beta(id='test')
-    gamma = Gamma(id='test')
-    lognormal = LogNormal(id='test')
+    uni = Uniform(id='test')
+    exp = Exponential(id='test', mean=1.0)
+    beta = Beta(id='test', alpha=1.0, beta=0.5)
+    gamma = Gamma(id='test', alpha=1.0, beta=0.5)
+    lgn = LogNormal(id='test', mean=1.0, sd=2.0, real_space=True)
 
-    assert str(uniform).startswith('<Uniform id="test" ')
-    assert str(exponential).startswith('<Exponential id="test" ')
+    assert str(uni).startswith('<Uniform id="test" ')
+    assert str(exp).startswith('<Exponential id="test" ')
     assert str(beta).startswith('<Beta id="test" ')
     assert str(gamma).startswith('<Gamma id="test" ')
-    assert str(lognormal).startswith('<LogNormal id="test" ')
+    assert str(lgn).startswith('<LogNormal id="test" ')
 
 
 def test_distributions_create_param_failure():
     """
     GIVEN: Distribution subclass with invalid parameters
     WHEN:  Distribution subclass instance is created
-    THEN:  Distribution subclass instance raises pydantic.ValidationError
+    THEN:  Distribution subclass instance raises
+                TypeError for missing params
+                pydantic.ValidationError for null values
     """
-    with pytest.raises(ValidationError):
-        Uniform(id=None)
+
+    # Missing required params
+    with pytest.raises(TypeError):
+        Exponential(id='test')
+    with pytest.raises(TypeError):
+        Beta(id='test')
+    with pytest.raises(TypeError):
+        Gamma(id='test')
+    with pytest.raises(TypeError):
+        LogNormal(id='test')
+
+    # Params are passed null values
     with pytest.raises(ValidationError):
         Exponential(id='test', mean=None)
     with pytest.raises(ValidationError):
-        Beta(id='test', alpha=None, beta=0.5)
+        Beta(id='test', alpha=None, beta=None)
     with pytest.raises(ValidationError):
-        Gamma(id='test', alpha=1.0, beta=None)
+        Gamma(id='test', alpha=None, beta=None)
     with pytest.raises(ValidationError):
-        LogNormal(id='test', mean=1.0, sd=None)
+        LogNormal(id='test', mean=None, sd=None)
 
 
 def test_distributions_create_param_success():
