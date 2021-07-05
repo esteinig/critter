@@ -11,7 +11,7 @@ before_install:
   - pip install pytest-cov
 install:
   - pip install . # install package
-script: pytest -v --cov-report term --cov=critter tests/ # run tests
+script: pytest -v # run tests
 after_success:
   - codecov # submit coverage
 
