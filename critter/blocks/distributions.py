@@ -22,7 +22,7 @@ class LogNormal(Distribution):
         **distr_config  # passing on distribution config fields
     ):
         super().__init__(**distr_config)
-        # Define the parameter attributes for testing access
+        # Define the parameter attributes for external / testing access
         self.mean = mean
         self.sd = sd
         self.mean_id = mean_id

@@ -17,7 +17,8 @@ setup(
         "pytest",
         "pydantic",
         "requests",
-        "typer"
+        "typer",
+        "coverage"
     ],
     entry_points="""
     [console_scripts]
@@ -25,6 +26,5 @@ setup(
     """,
     version="0.1.0",
     license="MIT",
-    description="Critter is a wrapper for BEAST XMLs that enables configuration of phylodynamic models "
-                "for pathogen transmission dynamics in Python",
+    description="Critter enables configuration of phylodynamic models for pathogen transmission dynamics in Python",
 )

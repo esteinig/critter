@@ -36,9 +36,13 @@ def test_distributions_create_param_failure():
     """
     with pytest.raises(ValidationError):
         Uniform(id=None)
+    with pytest.raises(ValidationError):
         Exponential(id='test', mean=None)
+    with pytest.raises(ValidationError):
         Beta(id='test', alpha=None, beta=0.5)
+    with pytest.raises(ValidationError):
         Gamma(id='test', alpha=1.0, beta=None)
+    with pytest.raises(ValidationError):
         LogNormal(id='test', mean=1.0, sd=None)
 
 
@@ -48,13 +52,13 @@ def test_distributions_create_param_success():
     WHEN:  Distribution subclass instance is created
     THEN:  Distribution subclass instance string contains the correct RealParameter string
     """
-    # Uniform has no params
+    # Uniform has no params, default param identifiers generated with UUID (e.g. exp.mean_id)
     exp = Exponential(id='test', mean=1.0)
     beta = Beta(id='test', alpha=1.0, beta=0.5)
     gamma = Gamma(id='test', alpha=1.0, beta=0.5)
     lgn = LogNormal(id='test', mean=1.0, sd=2.0, real_space=True)
 
-    # RealParameter block strings
+    # RealParameter block strings using the random param identifiers from super class for validation
     mean_param_exp = str(RealParameter(name='mean', id=exp.mean_id, value=exp.mean))
     alpha_param_beta = str(RealParameter(name='alpha', id=beta.alpha_id, value=beta.alpha))
     alpha_param_gamma = str(RealParameter(name='alpha', id=gamma.alpha_id, value=gamma.alpha))

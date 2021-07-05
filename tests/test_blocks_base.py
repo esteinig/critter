@@ -32,11 +32,17 @@ def test_real_parameter_create_failure():
 
     with pytest.raises(ValidationError):
         RealParameter(id=None, name="alpha", value=1.0)
+    with pytest.raises(ValidationError):
         RealParameter(id='test', name=None, value=1.0)
+    with pytest.raises(ValidationError):
         RealParameter(id='test', name="alpha", value=None)
+    with pytest.raises(ValidationError):
         RealParameter(id='test', name="alpha", value=1.0, dimension=None)
+    with pytest.raises(ValidationError):
         RealParameter(id='test', name="alpha", value=1.0, estimate=None)
+    with pytest.raises(ValidationError):
         RealParameter(id='test', name="alpha", value=1.0, lower=None)
+    with pytest.raises(ValidationError):
         RealParameter(id='test', name="alpha", value=1.0, upper=None)
 
 
