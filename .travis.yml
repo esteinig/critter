@@ -13,8 +13,8 @@ before_install:
   - pip install coverage
   - pip install pytest-cov
 install:
-  - pip install . # install package
-script: pytest -v --cov-report term --cov=critter tests/ # run tests
+  - pip install .
+script: pytest -v --cov-report term --cov=critter --ignore=critter/version.py --ignore=critter/terminal.py tests/
 after_success:
-  - codecov # submit coverage
+  - codecov
 
