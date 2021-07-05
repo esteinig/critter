@@ -19,7 +19,7 @@ setup(
     ],
     entry_points="""
     [console_scripts]
-    critter=critter.terminal.app
+    critter=critter.terminal:app
     """,
     version="0.1.0",
     license="MIT",
