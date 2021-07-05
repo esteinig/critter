@@ -13,12 +13,9 @@ setup(
         "fastapi",
         "colorama",
         "pyyaml",
-        "black",
-        "pytest",
         "pydantic",
         "requests",
-        "typer",
-        "coverage"
+        "typer"
     ],
     entry_points="""
     [console_scripts]

@@ -3,9 +3,6 @@ rich
 fastapi
 colorama
 pyyaml
-black
-pytest
 pydantic
 requests
 typer
-coverage
