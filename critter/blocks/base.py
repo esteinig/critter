@@ -1,7 +1,7 @@
 """ Base blocks mirroring BEAST 2.5 """
 
 from math import inf as infinity
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 from typing import List
 
 
@@ -31,11 +31,14 @@ class Distribution(BaseModel):
     # parameters defined in subclasses as RealParameters
     # this let's users config the parameter block id
     params: List[RealParameter] = list()
-    # sub model attributes match original name
+    # optional sub model pythonic attributes -> original name
     _attr_name = {
         'real_space': 'meanInRealSpace',
         'mode': 'mode'
     }
+
+    class Config:
+        extra = Extra.allow  # allow for setting super-class attr during testing
 
     def __str__(self):
 
@@ -47,9 +50,9 @@ class Distribution(BaseModel):
     def _get_distr_config(self) -> str:
         """ Get optional distribution configs from subclasses """
         return ' '.join([
-            f'{self._attr_name[attr] if attr in self._attr_name.keys() else attr}="{value}"'
+            f'{self._attr_name[attr]}="{value}"'
             for attr, value in vars(self).items()
-            if attr not in ('id', 'name', 'params')
+            if attr in self._attr_name.keys()
         ])
 
 
