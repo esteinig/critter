@@ -46,7 +46,7 @@ def test_real_parameter_create_failure():
         RealParameter(id='test', name="alpha", value=1.0, upper=None)
 
 
-def test_real_parameter_xml_string():
+def test_real_parameter_default_xml_string():
     """
     GIVEN: RealParameter with valid name and value
     WHEN:  RealParameter instance calls __str__
@@ -100,7 +100,7 @@ def test_base_distribution_attr_config_string():
     assert distr._get_distr_config() == ""
 
 
-def test_base_distribution_xml_string():
+def test_base_distribution_default_xml_string():
     """
     GIVEN: Distribution with valid name
     WHEN:  Distribution instance calls __str__

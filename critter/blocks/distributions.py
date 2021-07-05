@@ -37,8 +37,7 @@ class LogNormal(Distribution):
 # PATTERN: DISTRIBUTION WITHOUT PARAMS
 class Uniform(Distribution):
     id: str = f"Uniform.{get_uuid(short=True)}"
-    params: List[RealParameter] = list()
-
+    
 
 class Exponential(Distribution):
     id: str = f"Exponential.{get_uuid(short=True)}"
