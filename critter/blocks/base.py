@@ -1,9 +1,10 @@
 """ Base blocks mirroring BEAST 2.5 """
 
 from math import inf as infinity
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, Extra, root_validator
 from typing import List
 from critter.errors import CritterError
+from critter.utils import get_uuid
 
 
 class RealParameter(BaseModel):
@@ -31,9 +32,9 @@ class RealParameter(BaseModel):
                f'</parameter>'
 
 
-class Distribution(BaseModel):
+class Distribution(BaseModel, extra=Extra.allow):
     """ Distribution base class """
-    id: str
+    id: str = f'Distribution.{get_uuid(short=True)}'
     # parameters defined in subclasses as RealParameters
     # this let's users config the parameter block id
     params: List[RealParameter] = list()
@@ -42,9 +43,6 @@ class Distribution(BaseModel):
         'real_space': 'meanInRealSpace',
         'mode': 'mode'
     }
-
-    class Config:
-        extra = Extra.allow  # allow for setting super-class attr during testing
 
     def __str__(self):
         return self.xml
@@ -67,16 +65,17 @@ class Distribution(BaseModel):
 
 class Prior(BaseModel):
     """ Base class for priors """
-    prior_id: str  # prior identifier defined in all prior subclasses (id="")
-    param_id: str  # param identifier that the prior operates on (@)
-    distribution: Distribution or List[Distribution]
-    initial: float or list
-    lower: float = -infinity
-    upper: float = infinity
-    dimension: int = 1
-    slice_id: str = None  # prior identifier used in slices and slice functions (@)
+    id: str = f'Prior.{get_uuid(short=True)}'  # prior identifier prefix defined in all prior subclasses (id="")
+    distribution: List[Distribution]  # prior distribution, configured
+    initial: list  # initial values for the prior param
+
+    lower: float = -infinity  # lower bound for the prior param
+    upper: float = infinity   # upper bound for the prior param
+    dimension: int = 1        # dimension of the prior param
+
     sliced: bool = False  # for sliced SamplingProportion prior
     intervals: list = []  # for sliced SamplingProportion prior
+
     scw: str = None  # scale operator weight defined in clock subclasses
     scx: str = None  # scale identifier defined in clock subclasses
     param_spec: str = "parameter.RealParameter"  # changes in MTDB model to IntegerParameter
@@ -85,20 +84,14 @@ class Prior(BaseModel):
     def xml(self) -> str:
         if not self.sliced:
             # Normal singular prior distribution
-            return f"""
-                <prior id="{self.prior_id}" name="distribution" x="@{self.param_id}">
-                    {self.distribution.xml}
-                </prior>
-            """
+            return f'<prior id="{self.id}Prior" name="distribution" ' \
+                   f'x="@{self.id}">{self.distribution[0].xml}</prior>'
         else:
             # Sliced sampling proportion distribution per interval
             sliced_priors = ''
             for i, distribution in enumerate(self.distribution):
-                sliced_priors += f"""
-                    <prior id="{self.slice_id}Prior{i+1}" name="distribution" x="@{self.slice_id}{i+1}">
-                        {distribution.xml}
-                    </prior>
-                """
+                sliced_priors += f'<prior id="{self.id}Slice{i+1}" name="distribution" ' \
+                                 f'x="@{self.id}{i+1}">{distribution.xml}</prior>'
             return sliced_priors
 
     @property  # alias
@@ -108,19 +101,16 @@ class Prior(BaseModel):
     @property
     def xml_param(self) -> str:
         # Allow for higher dimensions using slices
-        if isinstance(self.initial, list):
-            initial = " ".join(str(i) for i in self.initial)
-        else:
-            initial = self.initial
+        initial = " ".join(str(i) for i in self.initial) if len(self.initial) > 1 else self.initial[0]
         param = RealParameter(  # TODO: validators on RealParameter
-            id=f"{self.param_id}", name="stateNode", value=initial, spec=self.param_spec,
+            id=f"{self.id}", name="stateNode", value=initial, spec=self.param_spec,
             dimension=self.dimension, lower=self.lower, upper=self.upper
         )
         return str(param)
 
     @property
     def xml_logger(self) -> str:
-        return f'<log idref="{self.param_id}"/>'
+        return f'<log idref="{self.id}"/>'
 
     # Clock scale operator for priors
     @property
@@ -134,9 +124,9 @@ class Prior(BaseModel):
             return ''
         else:
             xml = ''
-            for i, interval in enumerate(self.initial):
-                xml += f'<function spec="beast.core.util.Slice" id="{self.slice_id}{i+1}" ' \
-                    f'arg="@{self.param_id}" index="{i}" count="1"/>\n'
+            for i, _ in enumerate(self.distribution):
+                xml += f'<function spec="beast.core.util.Slice" id="{self.id}{i+1}" ' \
+                    f'arg="@{self.id}" index="{i}" count="1"/>\n'
             return xml
 
     @property
@@ -145,13 +135,13 @@ class Prior(BaseModel):
             return ''
         else:
             intervals = " ".join(str(i) for i in self.intervals)
-            if self.slice_id == 'samplingProportion':
+            if self.id.startswith('samplingProportion'):
                 rate_change_times = 'samplingRateChangeTimes'
-            elif self.slice_id == 'rho':
+            elif self.id.startswith('rho'):
                 rate_change_times = 'samplingRateChangeTimes'
-            elif self.slice_id == 'reproductiveNumber':
+            elif self.id.startswith('reproductiveNumber'):
                 rate_change_times = 'birthRateChangeTimes'
-            elif self.slice_id == 'becomeUninfectious':
+            elif self.id.startswith('becomeUninfectious'):
                 rate_change_times = 'deathRateChangeTimes'
             else:
                 raise CritterError(
@@ -169,9 +159,19 @@ class Prior(BaseModel):
             return ''
         else:
             loggers = ''
-            for i, value in enumerate(self.initial):
-                loggers += f'<log idref="{self.slice_id}{i+1}"/>\n'
+            for i, value in enumerate(self.distribution):
+                loggers += f'<log idref="{self.id}{i+1}"/>\n'
             return loggers
+
+    @root_validator
+    def validate_sliced_id(cls, values):
+        # Slicing only available for a subset of priors (BD Sky models)
+        if values.get('sliced') and not values.get('id').startswith(
+            ('origin', 'rho', 'samplingProportion', 'reproductiveNumber', 'becomeUninfectious')
+        ):
+            raise CritterError('Cannot create a sliced prior that does not belong to valid birth-death models')
+        else:
+            return values
 
 
 class Operator(BaseModel):

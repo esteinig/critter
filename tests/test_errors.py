@@ -4,8 +4,8 @@ from critter.errors import CritterError
 
 def test_errors_critter_exception():
     """
-    GIVEN:  Critter baser exception
-    WHEN:   Critter baser exception is raised
+    GIVEN:  CritterError base exception
+    WHEN:   CritterError base exception is raised
     THEN:   CritterError is raised
     """
 
