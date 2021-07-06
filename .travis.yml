@@ -14,7 +14,7 @@ before_install:
   - pip install pytest-cov
 install:
   - pip install .
-script: pytest -v --cov-report term --cov=critter --ignore=critter/version.py --ignore=critter/terminal.py tests/
+script: pytest -v --cov-report term-missing --cov=critter tests/
 after_success:
   - codecov
 
