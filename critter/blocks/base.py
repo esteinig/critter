@@ -174,111 +174,43 @@ class Prior(BaseModel):
             return values
 
 
+class Clock(BaseModel):
+    id: str = f'Clock.{get_uuid(short=True)}'
+    priors: List[Prior]
+    fixed: bool = None
+    state_node: str = ''  # defined in some clock subclasses
+
+    # Combine multiple prior XMLs
+    @property
+    def xml_param(self):
+        return "\n".join([p.xml_param for p in self.priors])
+
+    @property
+    def xml_logger(self):
+        return "\n".join([p.xml_logger for p in self.priors])
+
+    @property
+    def xml_prior(self):
+        return "\n".join([p.xml_prior for p in self.priors])
+
+    @property
+    def xml_state_node(self):
+        return self.state_node
+
+    # Defined in clock subclasses
+    @property
+    def xml_scale_operator(self) -> str:
+        return ''
+
+    @property
+    def xml_updown_operator(self) -> str:
+        return ''
+
+    @property
+    def xml_branch_rate_model(self) -> str:
+        return ''
+
+
 class Operator(BaseModel):
     """ <operator/> """
     pass
-
-
-# def check_init(self):
-#
-#     # Initial value checks
-#     if self.initial in self.allowed_negative_infinity \
-#             or self.initial in self.allowed_positive_infinity:
-#         raise BeastlingError(
-#             f'Initial value cannot be: {self.initial}'
-#         )
-#
-#     if isinstance(self.initial, list):
-#         try:
-#             self.initial = [float(i) for i in self.initial]
-#         except TypeError:
-#             raise BeastlingError(
-#                 f'Initial values in list must be valid floats'
-#             )
-#     else:
-#         try:
-#             if self.param_spec == "parameter.RealParameter":
-#                 self.initial = float(self.initial)
-#             elif self.param_spec == "parameter.IntegerParameter":
-#                 self.initial = int(self.initial)
-#             else:
-#                 raise BeastlingError(
-#                     f'Parameter specification: `{self.param_spec}` not found'
-#                 )
-#         except TypeError:
-#             raise BeastlingError(
-#                 f'Initial value must be a valid float'
-#             )
-#
-#     try:
-#         self.intervals = [float(i) for i in self.intervals]
-#     except TypeError:
-#         raise BeastlingError(
-#             f'Interval values in list must be valid floats'
-#         )
-#
-#     if self.lower is not None or self.upper is not None:
-#         # Upper / lower infinity checks
-#         if self.lower in self.allowed_positive_infinity:
-#             raise BeastlingError(
-#                 f'Lower bound cannot be positive infinity'
-#             )
-#
-#         if self.upper in self.allowed_negative_infinity:
-#             raise BeastlingError(
-#                 f'Upper bound cannot be negative infinity'
-#             )
-#
-#         # Upper / lower value checks and conversion
-#         if self.lower in self.allowed_negative_infinity:
-#             self.lower = -math.inf
-#         else:
-#             try:
-#                 self.lower = float(self.lower)
-#             except TypeError:
-#                 raise BeastlingError(
-#                     'Lower bound value must be valid float or infinity string'
-#                 )
-#
-#         if self.upper in self.allowed_positive_infinity:
-#             self.upper = math.inf
-#         else:
-#             try:
-#                 self.upper = float(self.upper)
-#             except TypeError:
-#                 raise BeastlingError(
-#                     'Upper bound value must be valid float or infinity string'
-#                 )
-#
-#         # Initital bounds check
-#         if isinstance(self.initial, list):
-#             check_initial = self.initial
-#         else:
-#             check_initial = [self.initial]
-#
-#         for i in check_initial:
-#             if not self.lower <= i <= self.upper:
-#                 raise BeastlingError(
-#                     f'Initial value {i} must be within '
-#                     f'bounds: {self.lower} and {self.upper}'
-#                 )
-#
-#     if self.sliced:
-#         if not isinstance(self.initial, list):
-#             raise BeastlingError(
-#                 'Something went wrong, slices set but '
-#                 'initial values is not a list'
-#             )
-#
-#         if self.dimension != len(self.initial) or \
-#                 self.dimension != len(self.intervals):
-#             raise BeastlingError(
-#                 'In sliced SamplingProportion, the number of dimensions '
-#                 'must match the number of initial values and intervals'
-#             )
-#
-#         if len(self.initial) != len(self.intervals):
-#             raise BeastlingError(
-#                 'Length of initial values must be the same length of '
-#                 'intervals when setting intervals of sampling proportion'
-#             )
