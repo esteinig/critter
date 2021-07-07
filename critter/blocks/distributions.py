@@ -1,9 +1,40 @@
 """ Distribution models """
 
-from critter.blocks.base import Distribution
-from critter.blocks.base import RealParameter
+from pydantic import BaseModel, Extra
+from critter.blocks.parameters import RealParameter
 from critter.utils import get_uuid
 from typing import List
+
+
+class Distribution(BaseModel, extra=Extra.allow):
+    """ Distribution base class """
+    id: str = f'Distribution.{get_uuid(short=True)}'
+    # parameters defined in subclasses as RealParameters
+    # this let's users config the parameter block id
+    params: List[RealParameter] = list()
+    # optional sub model pythonic attributes -> original name
+    _attr_name = {
+        'real_space': 'meanInRealSpace',
+        'mode': 'mode'
+    }
+
+    def __str__(self):
+        return self.xml
+
+    @property
+    def xml(self):
+        _param_block = "".join([str(param) for param in self.params])
+        return f'<{self.__class__.__name__} id="{self.id}" ' \
+               f'{self._get_distr_config()} name="distr">' \
+               f'{_param_block}</{self.__class__.__name__}>'
+
+    def _get_distr_config(self) -> str:
+        """ Get optional distribution configs from subclasses """
+        return ' '.join([
+            f'{self._attr_name[attr]}="{value}"'
+            for attr, value in vars(self).items()
+            if attr in self._attr_name.keys()
+        ])
 
 
 # PATTERN: DISTRIBUTION WITH PARAMS

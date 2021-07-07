@@ -1,4 +1,4 @@
-import pytest
+from pytest import raises
 
 from pydantic import ValidationError
 from critter.blocks.distributions import RealParameter
@@ -33,28 +33,26 @@ def test_distributions_create_param_failure():
     GIVEN: Distribution subclass with invalid parameters
     WHEN:  Distribution subclass instance is created
     THEN:  Distribution subclass instance raises
-                TypeError for missing params
-                pydantic.ValidationError for null values
+            - TypeError for missing params
+            - pydantic.ValidationError for null values
     """
-
     # Missing required params
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         Exponential(id='test')
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         Beta(id='test')
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         Gamma(id='test')
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         LogNormal(id='test')
-
     # Params are passed null values
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         Exponential(id='test', mean=None)
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         Beta(id='test', alpha=None, beta=None)
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         Gamma(id='test', alpha=None, beta=None)
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         LogNormal(id='test', mean=None, sd=None)
 
 
@@ -69,7 +67,6 @@ def test_distributions_create_param_success():
     beta = Beta(id='test', alpha=1.0, beta=0.5)
     gamma = Gamma(id='test', alpha=1.0, beta=0.5)
     lgn = LogNormal(id='test', mean=1.0, sd=2.0, real_space=True)
-
     # RealParameter block strings using the random param identifiers from super class for validation
     mean_param_exp = str(RealParameter(name='mean', id=exp.mean_id, value=exp.mean))
     alpha_param_beta = str(RealParameter(name='alpha', id=beta.alpha_id, value=beta.alpha))

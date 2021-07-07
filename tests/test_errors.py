@@ -1,4 +1,4 @@
-import pytest
+from pytest import raises
 from critter.errors import CritterError
 
 
@@ -8,6 +8,5 @@ def test_errors_critter_exception():
     WHEN:   CritterError base exception is raised
     THEN:   CritterError is raised
     """
-
-    with pytest.raises(CritterError):
+    with raises(CritterError):
         raise CritterError
