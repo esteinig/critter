@@ -86,7 +86,7 @@ def test_clock_strict_create_success():
         initial=i
     )
     strict_clock = StrictClock(
-        prior=strict_prior
+        prior=[strict_prior]
     )
     assert strict_clock.state_node == ''
     assert strict_clock.xml_state_node == ''
