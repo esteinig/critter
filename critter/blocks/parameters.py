@@ -1,4 +1,3 @@
-
 from math import inf as infinity
 from pydantic import BaseModel
 

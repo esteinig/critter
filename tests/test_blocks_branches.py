@@ -10,24 +10,49 @@ def test_branch_rate_model_create_success():
     """
 
     # Default base class construction
-    brm = BranchRateModel(id='test', spec='test', parameter="@test")
-    assert brm.xml == '<branchRateModel id="test" spec="test" clock.rate="@test" ></branchRateModel>'
+    brm = BranchRateModel(
+        id='test',
+        spec='test',
+        parameter="@test"
+    )
+    assert brm.xml == '<branchRateModel ' \
+                      'id="test" ' \
+                      'spec="test" ' \
+                      'clock.rate="@test" >' \
+                      '</branchRateModel>'
     assert str(brm) == brm.xml
 
     # Default base class without a distribution
     brm = BranchRateModel(
-        id='test', spec='test', parameter="@test",
-        tree_parameter="@tree", rate_categories_parameter="@"
+        id='test',
+        spec='test',
+        parameter="@test",
+        tree_parameter="@tree",
+        rate_categories_parameter="@"
     )
-    assert brm.xml == '<branchRateModel id="test" spec="test" clock.rate="@test" ></branchRateModel>'
+    assert brm.xml == '<branchRateModel ' \
+                      'id="test" ' \
+                      'spec="test" ' \
+                      'clock.rate="@test" >' \
+                      '</branchRateModel>'
 
     # Default base class with distribution
     exp = Exponential(mean=1.0)
     brm = BranchRateModel(
-        id='test', spec='test', parameter="@test", distribution=exp,
-        tree_parameter="@tree", rate_categories_parameter="@rateCategories"
+        id='test',
+        spec='test',
+        parameter="@test",
+        distribution=exp,
+        tree_parameter="@tree",
+        rate_categories_parameter="@rateCategories"
     )
-    assert brm.xml == '<branchRateModel id="test" spec="test" clock.rate="@test" ' \
-                      f'rateCategories="@rateCategories" tree="@tree">{exp.xml}</branchRateModel>'
+    assert brm.xml == '<branchRateModel ' \
+                      'id="test" ' \
+                      'spec="test" ' \
+                      'clock.rate="@test" ' \
+                      f'rateCategories="@rateCategories" ' \
+                      f'tree="@tree">' \
+                      f'{exp.xml}' \
+                      f'</branchRateModel>'
 
 

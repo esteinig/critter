@@ -23,7 +23,10 @@ class BranchRateModel(BaseModel):
 
     @property
     def xml(self):
-        return f'<branchRateModel id="{self.id}" spec="{self.spec}" clock.rate="{self.parameter}" ' \
+        return f'<branchRateModel ' \
+               f'id="{self.id}" ' \
+               f'spec="{self.spec}" ' \
+               f'clock.rate="{self.parameter}" ' \
                f'{self.get_relaxed_model_parameters()}>' \
                f'{"" if self.distribution is None else self.distribution}' \
                f'</branchRateModel>'
@@ -31,7 +34,8 @@ class BranchRateModel(BaseModel):
     def get_relaxed_model_parameters(self):
 
         if self.distribution is not None:
-            return f'rateCategories="{self.rate_categories_parameter}" tree="{self.tree_parameter}"'
+            return f'rateCategories="{self.rate_categories_parameter}" ' \
+                   f'tree="{self.tree_parameter}"'
         else:
             return ''
 
@@ -52,7 +56,18 @@ class UCRLBranchRateModel(BranchRateModel):
     # needed to bound the lower and upper values (as per template) - this is currently
     # not accessible from higher levels
     distribution: Distribution = LogNormal(
-        mean=None, sd=None, sd_parameter="@ucrlSD", real_space=True,
-        params=[RealParameter(id=f"RealParameter.{get_uuid(short=True)}", name="M", value=1.0, lower=0., upper=1.0)]
+        mean=1.0,
+        sd=None,
+        sd_parameter="@ucrlSD",
+        real_space=True,
+        params=[
+            RealParameter(
+                id=f"RealParameter.{get_uuid(short=True)}",
+                name="M",
+                value=1.0,
+                lower=0.,
+                upper=1.0
+            )
+        ]
     )
 

@@ -11,7 +11,11 @@ def test_real_parameter_create_success():
     WHEN:  RealParameter instance is created
     THEN:  RealParameter instance is created with valid defaults
     """
-    param = RealParameter(id="test", name="alpha", value=1.0)
+    param = RealParameter(
+        id="test",
+        name="alpha",
+        value=1.0
+    )
     assert param.id == 'test'
     assert param.name == 'alpha'
     assert param.value == 1.0
@@ -30,27 +34,68 @@ def test_real_parameter_create_failure():
     """
     # Required is null
     with raises(ValidationError):
-        RealParameter(id=None, name="alpha", value=1.0)
+        RealParameter(
+            id=None,
+            name="alpha",
+            value=1.0
+        )
     with raises(ValidationError):
-        RealParameter(id='test', name=None, value=1.0)
+        RealParameter(
+            id='test',
+            name=None,
+            value=1.0
+        )
     with raises(ValidationError):
-        RealParameter(id='test', name="alpha", value=None)
+        RealParameter(
+            id='test',
+            name="alpha",
+            value=None
+        )
     # Missing required
     with raises(ValidationError):
-        RealParameter(name="alpha", value=1.0)
+        RealParameter(
+            name="alpha",
+            value=1.0
+        )
     with raises(ValidationError):
-        RealParameter(id='test', value=1.0)
+        RealParameter(
+            id='test',
+            value=1.0
+        )
     with raises(ValidationError):
-        RealParameter(id='test', name="alpha")
+        RealParameter(
+            id='test',
+            name="alpha"
+        )
     # Defaults changed to null
     with raises(ValidationError):
-        RealParameter(id='test', name="alpha", value=1.0, dimension=None)
+        RealParameter(
+            id='test',
+            name="alpha",
+            value=1.0,
+            dimension=None
+        )
     with raises(ValidationError):
-        RealParameter(id='test', name="alpha", value=1.0, estimate=None)
+        RealParameter(
+            id='test',
+            name="alpha",
+            value=1.0,
+            estimate=None
+        )
     with raises(ValidationError):
-        RealParameter(id='test', name="alpha", value=1.0, lower=None)
+        RealParameter(
+            id='test',
+            name="alpha",
+            value=1.0,
+            lower=None
+        )
     with raises(ValidationError):
-        RealParameter(id='test', name="alpha", value=1.0, upper=None)
+        RealParameter(
+            id='test',
+            name="alpha",
+            value=1.0,
+            upper=None
+        )
 
 
 def test_real_parameter_default_xml_string():
@@ -59,9 +104,22 @@ def test_real_parameter_default_xml_string():
     WHEN:  RealParameter instance calls __str__
     THEN:  RealParameter instance returns valid XML string
     """
-    xml = str(RealParameter(id='test', name="alpha", value=1.0))
-    valid_xml = f'<parameter id="test" spec="parameter.RealParameter" estimate="false" ' \
-        f'lower="-inf" upper="inf" name="alpha">1.0</parameter>'
+    xml = str(
+        RealParameter(
+            id='test',
+            name="alpha",
+            value=1.0
+        )
+    )
+    valid_xml = f'<parameter ' \
+                f'id="test" ' \
+                f'spec="parameter.RealParameter" ' \
+                f'estimate="false" ' \
+                f'lower="-inf" ' \
+                f'upper="inf" ' \
+                f'name="alpha">' \
+                f'1.0' \
+                f'</parameter>'
     assert xml == valid_xml
 
 

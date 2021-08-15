@@ -3,16 +3,17 @@ from pydantic import BaseModel
 
 class Operator(BaseModel):
     """ <operator/> """
-
     id: str
-    spec: str  # e.g. "ScaleOperator"
+    spec: str
 
     def __str__(self) -> str:
         return self.xml
 
     @property
     def xml(self) -> str:
-        return f'<operator id="{self.id}" spec="{self.spec}"/>'
+        return f'<operator ' \
+               f'id="{self.id}" ' \
+               f'spec="{self.spec}"/>'
 
 
 # Specific subclasses defined by "spec"
@@ -24,8 +25,13 @@ class ScaleOperator(Operator):
 
     @property
     def xml(self):
-        return f'<operator id="{self.id}" spec="{self.spec}" parameter="{self.parameter}" ' \
-               f'weight="{self.weight}" scaleFactor="{self.scale_factor}"></operator>'
+        return f'<operator ' \
+               f'id="{self.id}" ' \
+               f'spec="{self.spec}" ' \
+               f'parameter="{self.parameter}" ' \
+               f'weight="{self.weight}" ' \
+               f'scaleFactor="{self.scale_factor}">' \
+               f'</operator>'
 
 
 class IntegerRandomWalkOperator(Operator):
@@ -36,8 +42,13 @@ class IntegerRandomWalkOperator(Operator):
 
     @property
     def xml(self):
-        return f'<operator id="{self.id}" spec="{self.spec}" parameter="{self.parameter}" ' \
-               f'weight="{self.weight}" windowSize="{self.window_size}"></operator>'
+        return f'<operator ' \
+               f'id="{self.id}" ' \
+               f'spec="{self.spec}" ' \
+               f'parameter="{self.parameter}" ' \
+               f'weight="{self.weight}" ' \
+               f'windowSize="{self.window_size}">' \
+               f'</operator>'
 
 
 class SwapOperator(Operator):
@@ -47,8 +58,12 @@ class SwapOperator(Operator):
 
     @property
     def xml(self):
-        return f'<operator id="{self.id}" spec="{self.spec}" intparameter="{self.parameter}" ' \
-               f'weight="{self.weight}"></operator>'
+        return f'<operator ' \
+               f'id="{self.id}" ' \
+               f'spec="{self.spec}" ' \
+               f'intparameter="{self.parameter}" ' \
+               f'weight="{self.weight}">' \
+               f'</operator>'
 
 
 class UniformOperator(Operator):
@@ -58,8 +73,12 @@ class UniformOperator(Operator):
 
     @property
     def xml(self):
-        return f'<operator id="{self.id}" spec="{self.spec}" parameter="{self.parameter}" ' \
-               f'weight="{self.weight}"></operator>'
+        return f'<operator ' \
+               f'id="{self.id}" ' \
+               f'spec="{self.spec}" ' \
+               f'parameter="{self.parameter}" ' \
+               f'weight="{self.weight}">' \
+               f'</operator>'
 
 
 class UpDownOperator(Operator):
@@ -71,7 +90,11 @@ class UpDownOperator(Operator):
 
     @property
     def xml(self):
-        return f'<operator id="{self.id}" spec="{self.spec}" weight="{self.weight}" scaleFactor="{self.scale_factor}">' \
+        return f'<operator ' \
+               f'id="{self.id}" ' \
+               f'spec="{self.spec}" ' \
+               f'weight="{self.weight}" ' \
+               f'scaleFactor="{self.scale_factor}">' \
                f'<up idref="{self.up_parameter}" />' \
                f'<down idref="{self.down_parameter}" />' \
                f'</operator>'

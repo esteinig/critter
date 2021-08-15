@@ -27,14 +27,21 @@ class Prior(BaseModel):
     def xml(self) -> str:
         if not self.sliced:
             # Normal singular prior distribution
-            return f'<prior id="{self.id}Prior" name="distribution" ' \
-                   f'x="@{self.id}">{self.distribution[0].xml}</prior>'
+            return f'<prior id="{self.id}Prior" ' \
+                   f'name="distribution" ' \
+                   f'x="@{self.id}">' \
+                   f'{self.distribution[0].xml}' \
+                   f'</prior>'
         else:
             # Sliced sampling proportion distribution per interval
             sliced_priors = ''
             for i, distribution in enumerate(self.distribution):
-                sliced_priors += f'<prior id="{self.id}Slice{i+1}" name="distribution" ' \
-                                 f'x="@{self.id}{i+1}">{distribution.xml}</prior>'
+                sliced_priors += f'<prior ' \
+                                 f'id="{self.id}Slice{i+1}" ' \
+                                 f'name="distribution" ' \
+                                 f'x="@{self.id}{i+1}">' \
+                                 f'{distribution.xml}' \
+                                 f'</prior>'
             return sliced_priors
 
     @property  # alias
@@ -46,8 +53,13 @@ class Prior(BaseModel):
         # Allow for higher dimensions using slices
         initial = " ".join(str(i) for i in self.initial) if len(self.initial) > 1 else self.initial[0]
         param = RealParameter(  # TODO: validators on RealParameter
-            id=f"{self.id}", name="stateNode", value=initial, spec=self.param_spec,
-            dimension=self.dimension, lower=self.lower, upper=self.upper
+            id=f"{self.id}",
+            name="stateNode",
+            value=initial,
+            spec=self.param_spec,
+            dimension=self.dimension,
+            lower=self.lower,
+            upper=self.upper
         )
         return param.xml
 
@@ -68,8 +80,11 @@ class Prior(BaseModel):
         else:
             xml = ''
             for i, _ in enumerate(self.distribution):
-                xml += f'<function spec="beast.core.util.Slice" id="{self.id}{i+1}" ' \
-                    f'arg="@{self.id}" index="{i}" count="1"/>\n'
+                xml += f'<function spec="beast.core.util.Slice" ' \
+                       f'id="{self.id}{i+1}" ' \
+                       f'arg="@{self.id}" ' \
+                       f'index="{i}" ' \
+                       f'count="1"/>\n'
             return xml
 
     @property
@@ -94,7 +109,9 @@ class Prior(BaseModel):
                     'becomeUninfectious (<deathRateChangeTime/>) priors'
                 )
 
-            return f'<{rate_change_times} spec="beast.core.parameter.RealParameter" value="{intervals}"/>'
+            return f'<{rate_change_times} ' \
+                   f'spec="beast.core.parameter.RealParameter" ' \
+                   f'value="{intervals}"/>'
 
     @property
     def xml_slice_logger(self) -> str:
@@ -122,41 +139,48 @@ class Prior(BaseModel):
 
 
 # Birth-Death Skyline Serial
-class Origin(Prior):
+class OriginPrior(Prior):
     id = "origin"
 
 
-class ReproductiveNumber(Prior):
+class ReproductiveNumberPrior(Prior):
     id = "reproductiveNumber"
 
 
-class SamplingProportion(Prior):
+class SamplingProportionPrior(Prior):
     id = "samplingProportion"
 
 
-class BecomeUninfectiousRate(Prior):
+class BecomeUninfectiousRatePrior(Prior):
     id = "becomeUninfectiousRate"
 
 
-class Rho(Prior):
+class RhoPrior(Prior):
     id = "rho"
 
 
 # MultiType BirthDeath Priors /w modifications to SamplingProportion
-class RateMatrix(Prior):
+class RateMatrixPrior(Prior):
     id = "rateMatrix"
 
 
-class SamplingProportionMTBD(Prior):
+class SamplingProportionMultiTypePrior(Prior):
     id = "samplingProportion"
 
     # Using a distribution component for prior here, not sure why:
     @property
     def xml(self) -> str:
-        return f'<distribution id="{self.id}Prior" ' \
-               f'spec="multitypetree.distributions.ExcludablePrior" x="@{self.id}">' \
-               f'<xInclude id="samplingProportionXInclude" spec="parameter.BooleanParameter" dimension="{self.dimension}">' \
-               f'{self.get_include_string()}</xInclude>{self.distribution[0].xml}</distribution>'
+        return f'<distribution ' \
+               f'id="{self.id}Prior" ' \
+               f'spec="multitypetree.distributions.ExcludablePrior" ' \
+               f'x="@{self.id}">' \
+               f'<xInclude id="samplingProportionXInclude" ' \
+               f'spec="parameter.BooleanParameter" ' \
+               f'dimension="{self.dimension}">' \
+               f'{self.get_include_string()}' \
+               f'</xInclude>' \
+               f'{self.distribution[0].xml}' \
+               f'</distribution>'
 
     def get_include_string(self) -> str:
         incl = ['true' if v != 0 else 'false' for v in self.initial]
@@ -164,32 +188,36 @@ class SamplingProportionMTBD(Prior):
 
 
 # Coalescent Bayesian Skyline
-class PopulationSize(Prior):
+class PopulationSizePrior(Prior):
     id = 'bPopSizes'
 
 
-class GroupSize(Prior):
+class GroupSizePrior(Prior):
     id = 'bGroupSizes'
     param_spec = 'parameter.IntegerParameter'
 
     @property
     def state_node_group_size(self) -> str:
-        return f'<stateNode id="bGroupSizes" spec="parameter.IntegerParameter" ' \
-            f'dimension="{self.dimension}">{self.initial}</stateNode>'
+        return f'<stateNode ' \
+               f'id="bGroupSizes" ' \
+               f'spec="parameter.IntegerParameter" ' \
+               f'dimension="{self.dimension}">' \
+               f'{self.initial}' \
+               f'</stateNode>'
 
 
 # Clock priors
-class ClockRate(Prior):
+class ClockRatePrior(Prior):
     id = 'clockRate'
 
 
-class UCRE(Prior):
+class UCREPrior(Prior):
     id = 'ucreMean'
 
 
-class UCRLMean(Prior):
+class UCRLMeanPrior(Prior):
     id = 'ucrlMean'
 
 
-class UCRLSD(Prior):
+class UCRLSDPrior(Prior):
     id = 'ucrlSD'

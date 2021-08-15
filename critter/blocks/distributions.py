@@ -25,9 +25,12 @@ class Distribution(BaseModel, extra=Extra.allow):
     @property
     def xml(self):
         _param_block = "".join([str(param) for param in self.params])
-        return f'<{self.__class__.__name__} id="{self.id}" ' \
-               f'{self._get_distr_config()} name="distr">' \
-               f'{_param_block}</{self.__class__.__name__}>'
+        return f'<{self.__class__.__name__} ' \
+               f'id="{self.id}" ' \
+               f'{self._get_distr_config()} ' \
+               f'name="distr">' \
+               f'{_param_block}' \
+               f'</{self.__class__.__name__}>'
 
     def _get_distr_config(self) -> str:
         """ Get optional distribution configs from subclasses """
@@ -62,9 +65,21 @@ class LogNormal(Distribution):
         self.sd_id = sd_id
 
         if self.mean is not None:
-            self.params.append(RealParameter(id=mean_id, name="M", value=mean))
+            self.params.append(
+                RealParameter(
+                    id=mean_id,
+                    name="M",
+                    value=mean
+                )
+            )
         if self.sd is not None:  # SD in branchRateParameter part of main parameters
-            self.params.append(RealParameter(id=sd_id, name="S", value=sd))
+            self.params.append(
+                RealParameter(
+                    id=sd_id,
+                    name="S",
+                    value=sd
+                )
+            )
 
 
 # PATTERN: DISTRIBUTION WITHOUT PARAMS
@@ -75,12 +90,21 @@ class Uniform(Distribution):
 class Exponential(Distribution):
     id: str = f"Exponential.{get_uuid(short=True)}"
 
-    def __init__(self, mean: float, mean_id: str = f'RealParameter.{get_uuid(short=True)}', **distr_config):
+    def __init__(
+        self,
+        mean: float,
+        mean_id: str = f'RealParameter.{get_uuid(short=True)}',
+        **distr_config
+    ):
         super().__init__(**distr_config)
         self.mean = mean
         self.mean_id = mean_id
         self.params: List[RealParameter] = [
-            RealParameter(id=mean_id, name="mean", value=mean)
+            RealParameter(
+                id=mean_id,
+                name="mean",
+                value=mean
+            )
         ]
 
 
@@ -101,8 +125,16 @@ class Beta(Distribution):
         self.alpha_id = alpha_id
         self.beta_id = beta_id
         self.params: List[RealParameter] = [
-            RealParameter(id=alpha_id, name="alpha", value=alpha),
-            RealParameter(id=beta_id, name="beta", value=beta),
+            RealParameter(
+                id=alpha_id,
+                name="alpha",
+                value=alpha
+            ),
+            RealParameter(
+                id=beta_id,
+                name="beta",
+                value=beta
+            ),
         ]
 
 
@@ -124,8 +156,16 @@ class Gamma(Distribution):
         self.alpha_id = alpha_id
         self.beta_id = beta_id
         self.params: List[RealParameter] = [
-            RealParameter(id=alpha_id, name="alpha", value=alpha),
-            RealParameter(id=beta_id, name="beta", value=beta),
+            RealParameter(
+                id=alpha_id,
+                name="alpha",
+                value=alpha
+            ),
+            RealParameter(
+                id=beta_id,
+                name="beta",
+                value=beta
+            ),
         ]
 
 

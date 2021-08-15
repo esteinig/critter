@@ -3,15 +3,15 @@ from math import inf as infinity
 from pydantic import ValidationError
 from critter.errors import CritterError
 from critter.blocks.priors import Prior
-from critter.blocks.priors import Origin
-from critter.blocks.priors import Rho
-from critter.blocks.priors import SamplingProportion
-from critter.blocks.priors import ReproductiveNumber
-from critter.blocks.priors import BecomeUninfectiousRate
-from critter.blocks.priors import RateMatrix
-from critter.blocks.priors import PopulationSize
-from critter.blocks.priors import GroupSize
-from critter.blocks.priors import SamplingProportionMTBD
+from critter.blocks.priors import OriginPrior
+from critter.blocks.priors import RhoPrior
+from critter.blocks.priors import SamplingProportionPrior
+from critter.blocks.priors import ReproductiveNumberPrior
+from critter.blocks.priors import BecomeUninfectiousRatePrior
+from critter.blocks.priors import RateMatrixPrior
+from critter.blocks.priors import PopulationSizePrior
+from critter.blocks.priors import GroupSizePrior
+from critter.blocks.priors import SamplingProportionMultiTypePrior
 from critter.blocks.distributions import Distribution
 from critter.blocks.distributions import Exponential
 from critter.blocks.parameters import RealParameter
@@ -24,7 +24,10 @@ def test_prior_create_default_success():
     THEN:  Prior instance is created with valid defaults
     """
     prior = Prior(
-        id="samplingProportion", distribution=[Exponential(mean=0.5)], initial=[1.0], dimension=1
+        id="samplingProportion",
+        distribution=[Exponential(mean=0.5)],
+        initial=[1.0],
+        dimension=1
     )
     # Default attributes
     assert prior.initial == [1.0]
@@ -37,21 +40,36 @@ def test_prior_create_default_success():
     assert prior.intervals == list()
     assert prior.param_spec == "parameter.RealParameter"
     # XML blocks
-    assert prior.xml.startswith(f'<prior id="{prior.id}Prior" name="distribution" x="@{prior.id}">')
+    assert prior.xml.startswith(
+        f'<prior '
+        f'id="{prior.id}Prior" '
+        f'name="distribution" '
+        f'x="@{prior.id}">'
+    )
     assert prior.xml.endswith('</prior>')
     assert str(prior) == prior.xml
     assert prior.distribution[0].xml in prior.xml
     # Test alias of xml property
-    assert prior.xml_prior.startswith(f'<prior id="{prior.id}Prior" name="distribution" x="@{prior.id}">')
+    assert prior.xml_prior.startswith(
+        f'<prior '
+        f'id="{prior.id}Prior" '
+        f'name="distribution" '
+        f'x="@{prior.id}">'
+    )
     assert prior.xml_prior.endswith('</prior>')  # allow for line breaks at ends
     assert prior.distribution[0].xml in prior.xml_prior
     # Test of other xml properties
     assert prior.xml_scale_operator is None
     assert prior.xml_logger == f'<log idref="{prior.id}"/>'
-    assert prior.xml_param == str(RealParameter(
-            id=f"{prior.id}", name="stateNode",
+    assert prior.xml_param == str(
+        RealParameter(
+            id=f"{prior.id}",
+            name="stateNode",
             value=" ".join(str(i) for i in prior.initial) if len(prior.initial) > 1 else prior.initial[0],
-            spec=prior.param_spec, dimension=prior.dimension, lower=prior.lower, upper=prior.upper
+            spec=prior.param_spec,
+            dimension=prior.dimension,
+            lower=prior.lower,
+            upper=prior.upper
         ))
     assert prior.xml_slice_function == ''
     assert prior.xml_slice_rate_change_times == ''
@@ -92,12 +110,20 @@ def test_prior_create_sliced_success():
 
     # Multiple priors for slices, get slice XMLs
     for i, distribution in enumerate(prior.distribution):
-        true_prior_xml = f'<prior id="{prior.id}Slice{i+1}" name="distribution" ' \
-                     f'x="@{prior.id}{i+1}">{distribution.xml}</prior>'
+        true_prior_xml = f'<prior ' \
+                         f'id="{prior.id}Slice{i+1}" ' \
+                         f'name="distribution" ' \
+                         f'x="@{prior.id}{i+1}">' \
+                         f'{distribution.xml}' \
+                         f'</prior>'
         assert true_prior_xml in prior.xml
         assert true_prior_xml in prior.xml_prior
-        true_slice_func_xml = f'<function spec="beast.core.util.Slice" id="{prior.id}{i+1}" ' \
-            f'arg="@{prior.id}" index="{i}" count="1"/>'
+        true_slice_func_xml = f'<function ' \
+                              f'spec="beast.core.util.Slice" ' \
+                              f'id="{prior.id}{i+1}" ' \
+                              f'arg="@{prior.id}" ' \
+                              f'index="{i}" ' \
+                              f'count="1"/>'
         assert true_slice_func_xml in prior.xml_slice_function
         true_slice_logger_xml = f'<log idref="{prior.id}{i+1}"/>'
         assert true_slice_logger_xml in prior.xml_slice_logger
@@ -111,7 +137,9 @@ def test_prior_create_sliced_success():
         "becomeUninfectious": "deathRateChangeTimes"
     }.items():
         prior.id = bd_prior
-        true_slice_rate_xml = f'<{xml_spec} spec="beast.core.parameter.RealParameter" value="{intervals}"/>'
+        true_slice_rate_xml = f'<{xml_spec} ' \
+                              f'spec="beast.core.parameter.RealParameter" ' \
+                              f'value="{intervals}"/>'
         assert true_slice_rate_xml == prior.xml_slice_rate_change_times
 
 
@@ -159,32 +187,66 @@ def test_prior_subclass_create_success():
     THEN:  Prior subclassses are created with valid default identifiers
     """
     distr, i = [Exponential(mean=0.5)], [1.0]
-    assert Origin(distribution=distr, initial=i).id == 'origin'
-    assert ReproductiveNumber(distribution=distr, initial=i).id == "reproductiveNumber"
-    assert SamplingProportion(distribution=distr, initial=i).id == "samplingProportion"
-    assert Rho(distribution=distr, initial=i).id == "rho"
-    assert BecomeUninfectiousRate(distribution=distr, initial=i).id == "becomeUninfectiousRate"
-    assert RateMatrix(distribution=distr, initial=i).id == "rateMatrix"
-    assert PopulationSize(distribution=distr, initial=i).id == "bPopSizes"
+    assert OriginPrior(
+        distribution=distr,
+        initial=i
+    ).id == 'origin'
+    assert ReproductiveNumberPrior(
+        distribution=distr,
+        initial=i
+    ).id == "reproductiveNumber"
+    assert SamplingProportionPrior(
+        distribution=distr,
+        initial=i
+    ).id == "samplingProportion"
+    assert RhoPrior(
+        distribution=distr,
+        initial=i
+    ).id == "rho"
+    assert BecomeUninfectiousRatePrior(
+        distribution=distr,
+        initial=i
+    ).id == "becomeUninfectiousRate"
+    assert RateMatrixPrior(
+        distribution=distr,
+        initial=i
+    ).id == "rateMatrix"
+    assert PopulationSizePrior(
+        distribution=distr,
+        initial=i
+    ).id == "bPopSizes"
 
     # Test modified XML properties of these two subclasses:
-    sp_mtbd = SamplingProportionMTBD(distribution=distr, initial=i)
-    ps_coal = GroupSize(distribution=distr, initial=i)
+    sp_mtbd = SamplingProportionMultiTypePrior(
+        distribution=distr,
+        initial=i
+    )
+    ps_coal = GroupSizePrior(
+        distribution=distr,
+        initial=i
+    )
     assert sp_mtbd.id == "samplingProportion"
     assert ps_coal.id == "bGroupSizes"
     assert ps_coal.param_spec == "parameter.IntegerParameter"
-    assert ps_coal.state_node_group_size == f'<stateNode id="bGroupSizes" spec="parameter.IntegerParameter" ' \
-        f'dimension="{ps_coal.dimension}">{ps_coal.initial}</stateNode>'
-    assert sp_mtbd.get_include_string() == (1, 'true')
+    assert ps_coal.state_node_group_size == f'<stateNode ' \
+                                            f'id="bGroupSizes" ' \
+                                            f'spec="parameter.IntegerParameter" ' \
+                                            f'dimension="{ps_coal.dimension}">' \
+                                            f'{ps_coal.initial}' \
+                                            f'</stateNode>'
+    assert sp_mtbd.get_include_string() == 'true'
 
     # Multi type birth death XML components
     _incl = sp_mtbd.get_include_string()
-    _dist = f'<distribution id="{sp_mtbd.id}Prior"' \
-            f' spec="multitypetree.distributions.ExcludablePrior"' \
-            f' x="@{sp_mtbd.id}">'
+    _dist = f'<distribution ' \
+            f'id="{sp_mtbd.id}Prior" ' \
+            f'spec="multitypetree.distributions.ExcludablePrior" ' \
+            f'x="@{sp_mtbd.id}">'
     _xinclude = f'<xInclude id="samplingProportionXInclude" ' \
                 f'spec="parameter.BooleanParameter" ' \
-                f'dimension="{sp_mtbd.dimension}">{_incl}</xInclude>'
+                f'dimension="{sp_mtbd.dimension}">' \
+                f'{_incl}' \
+                f'</xInclude>'
     assert sp_mtbd.xml.startswith(_dist)
     assert _xinclude in sp_mtbd.xml
     assert sp_mtbd.distribution[0].xml in sp_mtbd.xml
@@ -194,12 +256,19 @@ def test_prior_subclass_create_success():
 def test_mtbd_prior_xml_success():
 
     exp = Exponential(mean=1.0)
-    mtbd = SamplingProportionMTBD(initial=[1.0, 0., 1.0], distribution=[exp])
+    mtbd = SamplingProportionMultiTypePrior(initial=[1.0, 0., 1.0], distribution=[exp])
 
-    assert mtbd.xml == f'<distribution id="samplingProportionPrior" ' \
-       f'spec="multitypetree.distributions.ExcludablePrior" x="@samplingProportion"> ' \
-       f'<xInclude id="samplingProportionXInclude" spec="parameter.BooleanParameter" dimension="1">' \
-       f'true false true</xInclude>{exp.xml}</distribution>'
+    assert mtbd.xml == f'<distribution ' \
+                       f'id="samplingProportionPrior" ' \
+                       f'spec="multitypetree.distributions.ExcludablePrior" ' \
+                       f'x="@samplingProportion">' \
+                       f'<xInclude id="samplingProportionXInclude" ' \
+                       f'spec="parameter.BooleanParameter" ' \
+                       f'dimension="1">' \
+                       f'true false true' \
+                       f'</xInclude>' \
+                       f'{exp.xml}' \
+                       f'</distribution>'
 
 
 

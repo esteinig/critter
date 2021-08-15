@@ -1,6 +1,6 @@
-from critter.blocks.branches import UCREBranchRateModel, UCRLBranchRateModel, StrictBranchRateModel
 from critter.blocks.operators import SwapOperator, ScaleOperator, IntegerRandomWalkOperator, UniformOperator, UpDownOperator
-from critter.blocks.priors import Prior, ClockRate, UCRE, UCRLMean, UCRLSD
+from critter.blocks.branches import UCREBranchRateModel, UCRLBranchRateModel, StrictBranchRateModel
+from critter.blocks.priors import Prior, ClockRatePrior, UCREPrior, UCRLMeanPrior, UCRLSDPrior
 from pydantic import BaseModel, ValidationError, validator
 from critter.utils import get_uuid
 from typing import List
@@ -54,7 +54,9 @@ class Clock(BaseModel):
     @validator('prior')
     def prior_must_be_clock_prior(cls, field):
         for prior in field:
-            if not isinstance(prior, (ClockRate, UCRE, UCRLMean, UCRLSD)):
+            if not isinstance(
+                prior, (ClockRatePrior, UCREPrior, UCRLMeanPrior, UCRLSDPrior)
+            ):
                 raise ValidationError(
                     "Clocks must be populated with valid clock prior instances of: "
                     "ClockRate, UCREPrior, UCRLMeanPrior or UCRLSDPrior"
@@ -94,7 +96,12 @@ class StrictClock(Clock):
 
 
 class UCREClock(Clock):
-    state_node = f'<stateNode id="ucreRateCategories" spec="parameter.IntegerParameter" dimension="718">1</stateNode>'
+    state_node = f'<stateNode ' \
+                 f'id="ucreRateCategories" ' \
+                 f'spec="parameter.IntegerParameter" ' \
+                 f'dimension="718">' \
+                 f'1' \
+                 f'</stateNode>'
 
     @property
     def xml_branch_rate_model(self) -> str:
@@ -144,8 +151,12 @@ class UCREClock(Clock):
 
 
 class UCRLClock(Clock):
-    state_node = f'<stateNode id="ucrlRateCategories" spec="parameter.IntegerParameter" ' \
-                 f'dimension="718">1</stateNode>'
+    state_node = f'<stateNode ' \
+                 f'id="ucrlRateCategories" ' \
+                 f'spec="parameter.IntegerParameter" ' \
+                 f'dimension="718">' \
+                 f'1' \
+                 f'</stateNode>'
 
     @property
     def xml_branch_rate_model(self) -> str:

@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from critter.blocks.branches import StrictBranchRateModel, UCREBranchRateModel, UCRLBranchRateModel
 from critter.blocks.operators import ScaleOperator, UpDownOperator, SwapOperator, IntegerRandomWalkOperator, UniformOperator
 from critter.blocks.clocks import Clock, StrictClock, UCREClock, UCRLClock
-from critter.blocks.priors import Prior, ClockRate, UCRLSD, UCRLMean, UCRE, ReproductiveNumber
+from critter.blocks.priors import Prior, ClockRatePrior, UCRLSDPrior, UCRLMeanPrior, UCREPrior, ReproductiveNumberPrior
 from critter.blocks.distributions import Exponential
 
 
@@ -14,7 +14,7 @@ def test_clock_base_create_success():
     THEN:  Clock instance is created with valid default parameters
     """
     distr, i = [Exponential(mean=0.5)], [1.0]
-    prior = ClockRate(
+    prior = ClockRatePrior(
         distribution=distr,
         initial=i
     )  # standard rate prior for strict clock
@@ -39,11 +39,11 @@ def test_clock_base_create_success():
     assert clock.xml_updown_operator == ''
     assert clock.xml_branch_rate_model == ''
     # Clock base with multiple priors
-    ucld_mean = UCRLMean(
+    ucld_mean = UCRLMeanPrior(
         distribution=distr,
         initial=i
     )
-    ucld_sd = UCRLSD(
+    ucld_sd = UCRLSDPrior(
         distribution=distr,
         initial=i
     )
@@ -63,7 +63,7 @@ def test_clock_base_create_wrong_prior_failure():
     """
     distr, i = [Exponential(mean=0.5)], [1.0]
     with pytest.raises(ValidationError):
-        prior = ReproductiveNumber(
+        prior = ReproductiveNumberPrior(
             distribution=distr,
             initial=i
         )  # wrong rate prior for clocks
@@ -81,7 +81,7 @@ def test_clock_strict_create_success():
     THEN:  StrictClock instance is created with valid parameters
     """
     distr, i = [Exponential(mean=0.5)], [1.0]
-    strict_prior = ClockRate(
+    strict_prior = ClockRatePrior(
         distribution=distr,
         initial=i
     )
@@ -121,7 +121,7 @@ def test_clock_ucre_create_success():
     """
 
     distr, i = [Exponential(mean=0.5)], [1.0]
-    ucre_prior = UCRE(
+    ucre_prior = UCREPrior(
         distribution=distr,
         initial=i
     )
@@ -129,9 +129,19 @@ def test_clock_ucre_create_success():
         prior=[ucre_prior]
     )
     assert ucre_clock.state_node == \
-        f'<stateNode id="ucreRateCategories" spec="parameter.IntegerParameter" dimension="718">1</stateNode>'
+        f'<stateNode ' \
+        f'id="ucreRateCategories" ' \
+        f'spec="parameter.IntegerParameter" ' \
+        f'dimension="718">' \
+        f'1' \
+        f'</stateNode>'
     assert ucre_clock.xml_state_node == \
-        f'<stateNode id="ucreRateCategories" spec="parameter.IntegerParameter" dimension="718">1</stateNode>'
+        f'<stateNode ' \
+        f'id="ucreRateCategories" ' \
+        f'spec="parameter.IntegerParameter" ' \
+        f'dimension="718">' \
+        f'1' \
+        f'</stateNode>'
     assert ucre_clock.xml_branch_rate_model == UCREBranchRateModel(
         id="ucreBranchRateModel",
         parameter="@ucreMean",
@@ -179,11 +189,11 @@ def test_clock_ucrl_create_success():
     """
 
     distr, i = [Exponential(mean=0.5)], [1.0]
-    ucrl_mean_prior = UCRLMean(
+    ucrl_mean_prior = UCRLMeanPrior(
         distribution=distr,
         initial=i
     )
-    ucrl_sd_prior = UCRLSD(
+    ucrl_sd_prior = UCRLSDPrior(
         distribution=distr,
         initial=i
     )
@@ -191,9 +201,19 @@ def test_clock_ucrl_create_success():
         prior=[ucrl_mean_prior, ucrl_sd_prior]
     )
     assert ucrl_clock.state_node == \
-        f'<stateNode id="ucrlRateCategories" spec="parameter.IntegerParameter" dimension="718">1</stateNode>'
+        f'<stateNode ' \
+        f'id="ucrlRateCategories" ' \
+        f'spec="parameter.IntegerParameter" ' \
+        f'dimension="718">' \
+        f'1' \
+        f'</stateNode>'
     assert ucrl_clock.xml_state_node == \
-        f'<stateNode id="ucrlRateCategories" spec="parameter.IntegerParameter" dimension="718">1</stateNode>'
+        f'<stateNode ' \
+        f'id="ucrlRateCategories" ' \
+        f'spec="parameter.IntegerParameter" ' \
+        f'dimension="718">' \
+        f'1' \
+        f'</stateNode>'
     assert ucrl_clock.xml_branch_rate_model == UCRLBranchRateModel(
         id="ucrlBranchRateModel",
         parameter="@ucrlMean",
