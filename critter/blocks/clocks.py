@@ -51,6 +51,12 @@ class Clock(BaseModel):
     def xml_branch_rate_model(self) -> str:
         return ''
 
+    @validator('prior', pre=True)
+    def check_if_prior_is_list(cls, field):
+        if isinstance(field, Prior):
+            return [Prior]
+        return field
+
     @validator('prior')
     def prior_must_be_clock_prior(cls, field):
         for prior in field:
@@ -59,7 +65,7 @@ class Clock(BaseModel):
             ):
                 raise ValidationError(
                     "Clocks must be populated with valid clock prior instances of: "
-                    "ClockRate, UCREPrior, UCRLMeanPrior or UCRLSDPrior"
+                    "ClockRatePrior, UCREPrior, UCRLMeanPrior or UCRLSDPrior"
                 )
         return field
 
