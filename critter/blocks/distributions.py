@@ -15,7 +15,8 @@ class Distribution(BaseModel, extra=Extra.allow):
     # optional sub model pythonic attributes -> original name
     _attr_name = {
         'real_space': 'meanInRealSpace',
-        'mode': 'mode'
+        'mode': 'mode',
+        'sd_parameter': 'S'   # used in branchRateParameter LogNormal with @
     }
 
     def __str__(self):
@@ -33,7 +34,7 @@ class Distribution(BaseModel, extra=Extra.allow):
         return ' '.join([
             f'{self._attr_name[attr]}="{value}"'
             for attr, value in vars(self).items()
-            if attr in self._attr_name.keys()
+            if attr in self._attr_name.keys() and attr is not None
         ])
 
 
@@ -41,28 +42,29 @@ class Distribution(BaseModel, extra=Extra.allow):
 class LogNormal(Distribution):
     # Distribution specific configs (passed on to Distribution)
     id: str = f"LogNormal.{get_uuid(short=True)}"
+    sd_parameter: str = None  # used in branchRateModel LogNormal with @
     real_space: bool = False
 
     # RealParameter specific configs (params init on distribution init)
     def __init__(
         self,
-        mean: float,
-        sd: float,
+        mean: float = None,
+        sd: float = None,
         mean_id: str = f'RealParameter.{get_uuid(short=True)}',
         sd_id: str = f'RealParameter.{get_uuid(short=True)}',
         **distr_config  # passing on distribution config fields
     ):
         super().__init__(**distr_config)
-        # Define the parameter attributes for external / testing access
+        # Define the parameter attributes here for external / testing access
         self.mean = mean
         self.sd = sd
         self.mean_id = mean_id
         self.sd_id = sd_id
-        # RealParameters have to be instantiated within __init__ for model access
-        self.params: List[RealParameter] = [
-            RealParameter(id=mean_id, name="mean", value=mean),
-            RealParameter(id=sd_id, name="sd", value=sd),
-        ]
+
+        if self.mean is not None:
+            self.params.append(RealParameter(id=mean_id, name="M", value=mean))
+        if self.sd is not None:  # SD in branchRateParameter part of main parameters
+            self.params.append(RealParameter(id=sd_id, name="S", value=sd))
 
 
 # PATTERN: DISTRIBUTION WITHOUT PARAMS

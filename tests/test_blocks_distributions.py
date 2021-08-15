@@ -1,12 +1,70 @@
-from pytest import raises
-
-from pydantic import ValidationError
-from critter.blocks.distributions import RealParameter
+from critter.blocks.parameters import RealParameter
+from critter.blocks.distributions import Distribution
 from critter.blocks.distributions import Uniform
 from critter.blocks.distributions import Exponential
 from critter.blocks.distributions import Gamma
 from critter.blocks.distributions import Beta
 from critter.blocks.distributions import LogNormal
+
+
+def test_base_distribution_create_success():
+    """
+    GIVEN: Distribution with valid name or parameters
+    WHEN:  Distribution instance is created
+    THEN:  Distribution instance is created with valid defaults
+    """
+    no_param_distr = Distribution(id="Base")
+    assert no_param_distr.id == "Base"
+    assert no_param_distr.params == list()
+    assert type(no_param_distr.id) == str
+    # Multiple param distribution
+    param1 = RealParameter(id="test1", name="alpha", value=2.0)
+    param2 = RealParameter(id="test2", name="beta", value=2.0)
+    param_distr = Distribution(id="Base")
+    param_distr.params = [param1, param2]
+    assert param_distr.params == [param1, param2]
+    assert type(param_distr.params[0]) == RealParameter
+    assert type(param_distr.params[1]) == RealParameter
+
+
+def test_base_distribution_attr_config_complete():
+    """
+    GIVEN:  Distribution with valid name
+    WHEN:   Distribution instance has been created
+    THEN:   Distribution instance config is complete
+    """
+    distr = Distribution(id="Base")
+    for key, value in {'mode': 'mode', 'real_space': 'meanInRealSpace'}.items():
+        assert key in distr._attr_name.keys()
+        assert value in distr._attr_name.values()
+
+
+def test_base_distribution_attr_config_string():
+    """
+    GIVEN:  Distribution with _attr_name config attribute
+    WHEN:   Distribution instance calls _get_distr_config
+    THEN:   Distribution instance returns empty config string
+    """
+    distr = Distribution(id="Base")
+    assert distr._get_distr_config() == ""
+
+
+def test_base_distribution_default_xml_string():
+    """
+    GIVEN: Distribution with valid name
+    WHEN:  Distribution instance calls __str__
+    THEN:  Distribution instance returns valid XML string
+    """
+    xml = str(Distribution(id="Gamma"))
+    no_param_xml = f'<Distribution id="Gamma"  name="distr"></Distribution>'  # space!
+    assert xml == no_param_xml
+    # Multiple parameter XML distribution string
+    param1 = RealParameter(id='test1', name="alpha", value=2.0)
+    param2 = RealParameter(id='test2', name="beta", value=2.0)
+    xml = Distribution(id="Base")
+    xml.params = [param1, param2]
+    param_xml = f'<Distribution id="Base"  name="distr">{str(param1)}{str(param2)}</Distribution>'  # space!
+    assert str(xml) == param_xml
 
 
 def test_distributions_create_id_success():
@@ -28,34 +86,6 @@ def test_distributions_create_id_success():
     assert str(lgn).startswith('<LogNormal id="test" ')
 
 
-def test_distributions_create_param_failure():
-    """
-    GIVEN: Distribution subclass with invalid parameters
-    WHEN:  Distribution subclass instance is created
-    THEN:  Distribution subclass instance raises
-            - TypeError for missing params
-            - pydantic.ValidationError for null values
-    """
-    # Missing required params
-    with raises(TypeError):
-        Exponential(id='test')
-    with raises(TypeError):
-        Beta(id='test')
-    with raises(TypeError):
-        Gamma(id='test')
-    with raises(TypeError):
-        LogNormal(id='test')
-    # Params are passed null values
-    with raises(ValidationError):
-        Exponential(id='test', mean=None)
-    with raises(ValidationError):
-        Beta(id='test', alpha=None, beta=None)
-    with raises(ValidationError):
-        Gamma(id='test', alpha=None, beta=None)
-    with raises(ValidationError):
-        LogNormal(id='test', mean=None, sd=None)
-
-
 def test_distributions_create_param_success():
     """
     GIVEN: Distribution subclass with valid params for internal RealParameters
@@ -73,8 +103,8 @@ def test_distributions_create_param_success():
     alpha_param_gamma = str(RealParameter(name='alpha', id=gamma.alpha_id, value=gamma.alpha))
     beta_param_beta = str(RealParameter(name='beta', id=beta.beta_id, value=beta.beta))
     beta_param_gamma = str(RealParameter(name='beta', id=gamma.beta_id, value=gamma.beta))
-    mean_param_lgn = str(RealParameter(name='mean', id=lgn.mean_id, value=lgn.mean))
-    sd_param_lgn = str(RealParameter(name='sd', id=lgn.sd_id, value=lgn.sd))
+    mean_param_lgn = str(RealParameter(name='M', id=lgn.mean_id, value=lgn.mean))
+    sd_param_lgn = str(RealParameter(name='S', id=lgn.sd_id, value=lgn.sd))
 
     assert mean_param_exp in str(exp)
     assert mean_param_lgn in str(lgn)

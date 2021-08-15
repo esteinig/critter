@@ -14,11 +14,11 @@ class Parameter(BaseModel):
     estimate: bool = False
     spec: str = "parameter.RealParameter"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.xml
 
     @property
-    def xml(self):
+    def xml(self) -> str:
         return f'<parameter id="{self.id}" ' \
                f'spec="{self.spec}" ' \
                f'estimate="{str(self.estimate).lower()}" ' \

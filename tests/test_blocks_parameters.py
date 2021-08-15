@@ -3,9 +3,6 @@ from pytest import raises
 from math import inf as infinity
 from pydantic import ValidationError
 from critter.blocks.parameters import RealParameter
-from critter.blocks.distributions import Distribution
-
-# Remember to check Pydantic --> usage/models/#data-conversion
 
 
 def test_real_parameter_create_success():
@@ -31,7 +28,6 @@ def test_real_parameter_create_failure():
     WHEN:  RealParameter instance is created
     THEN:  RealParameter instances raises pydantic.ValidationError
     """
-
     # Required is null
     with raises(ValidationError):
         RealParameter(id=None, name="alpha", value=1.0)
@@ -67,66 +63,6 @@ def test_real_parameter_default_xml_string():
     valid_xml = f'<parameter id="test" spec="parameter.RealParameter" estimate="false" ' \
         f'lower="-inf" upper="inf" name="alpha">1.0</parameter>'
     assert xml == valid_xml
-
-
-def test_base_distribution_create_success():
-    """
-    GIVEN: Distribution with valid name or parameters
-    WHEN:  Distribution instance is created
-    THEN:  Distribution instance is created with valid defaults
-    """
-    no_param_distr = Distribution(id="Base")
-    assert no_param_distr.id == "Base"
-    assert no_param_distr.params == list()
-    assert type(no_param_distr.id) == str
-    # Multiple param distribution
-    param1 = RealParameter(id="test1", name="alpha", value=2.0)
-    param2 = RealParameter(id="test2", name="beta", value=2.0)
-    param_distr = Distribution(id="Base")
-    param_distr.params = [param1, param2]
-    assert param_distr.params == [param1, param2]
-    assert type(param_distr.params[0]) == RealParameter
-    assert type(param_distr.params[1]) == RealParameter
-
-
-def test_base_distribution_attr_config_complete():
-    """
-    GIVEN:  Distribution with valid name
-    WHEN:   Distribution instance has been created
-    THEN:   Distribution instance config is complete
-    """
-    distr = Distribution(id="Base")
-    for key, value in {'mode': 'mode', 'real_space': 'meanInRealSpace'}.items():
-        assert key in distr._attr_name.keys()
-        assert value in distr._attr_name.values()
-
-
-def test_base_distribution_attr_config_string():
-    """
-    GIVEN:  Distribution with _attr_name config attribute
-    WHEN:   Distribution instance calls _get_distr_config
-    THEN:   Distribution instance returns empty config string
-    """
-    distr = Distribution(id="Base")
-    assert distr._get_distr_config() == ""
-
-
-def test_base_distribution_default_xml_string():
-    """
-    GIVEN: Distribution with valid name
-    WHEN:  Distribution instance calls __str__
-    THEN:  Distribution instance returns valid XML string
-    """
-    xml = str(Distribution(id="Gamma"))
-    no_param_xml = f'<Distribution id="Gamma"  name="distr"></Distribution>'  # space!
-    assert xml == no_param_xml
-    # Multiple parameter XML distribution string
-    param1 = RealParameter(id='test1', name="alpha", value=2.0)
-    param2 = RealParameter(id='test2', name="beta", value=2.0)
-    xml = Distribution(id="Base")
-    xml.params = [param1, param2]
-    param_xml = f'<Distribution id="Base"  name="distr">{str(param1)}{str(param2)}</Distribution>'  # space!
-    assert str(xml) == param_xml
 
 
 

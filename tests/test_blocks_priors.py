@@ -1,6 +1,7 @@
 from pytest import raises
 from math import inf as infinity
 from pydantic import ValidationError
+from critter.errors import CritterError
 from critter.blocks.priors import Prior
 from critter.blocks.priors import Origin
 from critter.blocks.priors import Rho
@@ -34,12 +35,11 @@ def test_prior_create_default_success():
     assert prior.upper == infinity
     assert prior.sliced is False
     assert prior.intervals == list()
-    assert prior.scw is None
-    assert prior.scx is None
     assert prior.param_spec == "parameter.RealParameter"
     # XML blocks
     assert prior.xml.startswith(f'<prior id="{prior.id}Prior" name="distribution" x="@{prior.id}">')
     assert prior.xml.endswith('</prior>')
+    assert str(prior) == prior.xml
     assert prior.distribution[0].xml in prior.xml
     # Test alias of xml property
     assert prior.xml_prior.startswith(f'<prior id="{prior.id}Prior" name="distribution" x="@{prior.id}">')
@@ -54,7 +54,7 @@ def test_prior_create_default_success():
             spec=prior.param_spec, dimension=prior.dimension, lower=prior.lower, upper=prior.upper
         ))
     assert prior.xml_slice_function == ''
-    assert prior.xml_slice_rate == ''
+    assert prior.xml_slice_rate_change_times == ''
     assert prior.xml_slice_logger == ''
 
 
@@ -112,7 +112,7 @@ def test_prior_create_sliced_success():
     }.items():
         prior.id = bd_prior
         true_slice_rate_xml = f'<{xml_spec} spec="beast.core.parameter.RealParameter" value="{intervals}"/>'
-        assert true_slice_rate_xml in prior.xml_slice_rate
+        assert true_slice_rate_xml == prior.xml_slice_rate_change_times
 
 
 def test_prior_create_sliced_fail():
@@ -134,9 +134,9 @@ def test_prior_create_sliced_fail():
 
 def test_prior_slice_rate_xml_fail():
     """
-    GIVEN: Prior with invalid ID that evaded pydantic ValidationError
-    WHEN:  Prior instance XML for a slice rate is accessed
-    THEN:  CritterError is raised, as only defined for
+    GIVEN: Prior with ID not available for slice rate change times
+    WHEN:  Prior instance xml property for slice rate change times is accessed
+    THEN:  ValidationError is raised
     """
     prior = Prior(
         id="samplingProportion",
@@ -147,9 +147,9 @@ def test_prior_slice_rate_xml_fail():
         initial=[1.0, 2.0]
     )  # success
 
-    prior.id = "nameFailsToGetSliceRateXML"
-    with raises(ValidationError):
-        _ = prior.xml_slice_rate
+    prior.id = "nameFailsToGetSliceRateChangeTimesXML"
+    with raises(CritterError):
+        _ = prior.xml_slice_rate_change_times
 
 
 def test_prior_subclass_create_success():
@@ -189,3 +189,18 @@ def test_prior_subclass_create_success():
     assert _xinclude in sp_mtbd.xml
     assert sp_mtbd.distribution[0].xml in sp_mtbd.xml
     assert sp_mtbd.xml.endswith('</distribution>')
+
+
+def test_mtbd_prior_xml_success():
+
+    exp = Exponential(mean=1.0)
+    mtbd = SamplingProportionMTBD(initial=[1.0, 0., 1.0], distribution=[exp])
+
+    assert mtbd.xml == f'<distribution id="samplingProportionPrior" ' \
+       f'spec="multitypetree.distributions.ExcludablePrior" x="@samplingProportion"> ' \
+       f'<xInclude id="samplingProportionXInclude" spec="parameter.BooleanParameter" dimension="1">' \
+       f'true false true</xInclude>{exp.xml}</distribution>'
+
+
+
+

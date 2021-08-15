@@ -1,17 +1,16 @@
-from critter.blocks.misc import BranchRateModel
-from critter.blocks.operators import Operator
-from critter.blocks.priors import Prior
+from critter.blocks.branches import UCREBranchRateModel, UCRLBranchRateModel, StrictBranchRateModel
+from critter.blocks.operators import SwapOperator, ScaleOperator, IntegerRandomWalkOperator, UniformOperator, UpDownOperator
+from critter.blocks.priors import Prior, ClockRate, UCRE, UCRLMean, UCRLSD
 from pydantic import BaseModel, ValidationError, validator
 from critter.utils import get_uuid
 from typing import List
-from critter.blocks.priors import Rate, UCED, UCLDMean, UCLDSD
 
 
 class Clock(BaseModel):
     """ Base class for clock models """
     id: str = f'Clock.{get_uuid(short=True)}'
 
-    priors: List[Prior]
+    prior: List[Prior]
     fixed: bool = False
     state_node: str = ''  # defined in some clock subclasses
 
@@ -25,15 +24,15 @@ class Clock(BaseModel):
 
     @property
     def xml_prior(self):
-        return "\n".join([p.xml_prior for p in self.priors])
+        return "\n".join([p.xml_prior for p in self.prior])
 
     @property
     def xml_param(self):
-        return "\n".join([p.xml_param for p in self.priors])
+        return "\n".join([p.xml_param for p in self.prior])
 
     @property
     def xml_logger(self):
-        return "\n".join([p.xml_logger for p in self.priors])
+        return "\n".join([p.xml_logger for p in self.prior])
 
     @property
     def xml_state_node(self):
@@ -52,106 +51,149 @@ class Clock(BaseModel):
     def xml_branch_rate_model(self) -> str:
         return ''
 
-    @validator('priors')
-    def priors_must_be_clock_priors(self, field):
+    @validator('prior')
+    def prior_must_be_clock_prior(cls, field):
         for prior in field:
-            if not isinstance(prior, (Rate, UCED, UCLDMean, UCLDSD)):
+            if not isinstance(prior, (ClockRate, UCRE, UCRLMean, UCRLSD)):
                 raise ValidationError(
-                    "Clocks must be populated with valid clock prior instances of: Rate, UCED, UCLDMean or UCLDSD"
+                    "Clocks must be populated with valid clock prior instances of: "
+                    "ClockRate, UCREPrior, UCRLMeanPrior or UCRLSDPrior"
                 )
         return field
 
 
-class Strict(Clock):
+class StrictClock(Clock):
 
     @property
     def xml_branch_rate_model(self) -> str:
-        return f'<branchRateModel id="StrictClock.c:snp" spec="beast.evolution.branchratemodel.StrictClockModel" clock.rate="@clockRate.c:snp"/>'
+        return StrictBranchRateModel(
+            id="strictClockBranchRate",
+            parameter="@clockRate"
+        ).xml
 
-    def xml_scale_operator(self):
+    @property
+    def xml_scale_operator(self) -> str:
         if self.fixed:
             return ""
         else:
-            return f'<operator id="StrictClockRateScaler.c:snp" spec="ScaleOperator" parameter="@clockRate.c:snp" scaleFactor="0.5" weight="3.0"/>'
+            return ScaleOperator(
+                id="strictClockScaleOperator",
+                parameter="@clockRate"
+            ).xml
 
+    @property
     def xml_updown_operator(self) -> str:
         if self.fixed:
             return ""
         else:
-            return textwrap.dedent(f"""
-                <operator id="strictClockUpDownOperator.c:snp" spec="UpDownOperator" scaleFactor="0.75" weight="3.0">
-                    <up idref="clockRate.c:snp"/>
-                    <down idref="Tree.t:snp"/>
-                </operator>
-            """)
+            return UpDownOperator(
+                id="strictClockUpDownOperator",
+                up_parameter="@clockRate",
+                down_parameter="@Tree"
+            ).xml
 
 
-class RelaxedExponential(Clock):
-    state_node = f'<stateNode id="expRateCategories.c:snp" spec="parameter.IntegerParameter" dimension="718">1</stateNode>'
+class UCREClock(Clock):
+    state_node = f'<stateNode id="ucreRateCategories" spec="parameter.IntegerParameter" dimension="718">1</stateNode>'
 
-    def get_branch_rate_xml(self) -> str:
-        return textwrap.dedent(f""" 
-            <branchRateModel id="ExponentialRelaxedClock.c:snp" spec="beast.evolution.branchratemodel.UCRelaxedClockModel" clock.rate="@ucedMean.c:snp" rateCategories="@expRateCategories.c:snp" tree="@Tree.t:snp">
-                <Exponential id="Exponential.c:snp" name="distr">
-                    <parameter id="UCExpLambda.c:snp" spec="parameter.RealParameter" name="mean">1.0</parameter>
-                </Exponential>
-            </branchRateModel>
-        """)
+    @property
+    def xml_branch_rate_model(self) -> str:
+        return UCREBranchRateModel(
+            id="ucreBranchRateModel",
+            parameter="@ucreMean",
+            tree_parameter="@Tree",
+            rate_categories_parameter="@ucreRateCategories"
+        ).xml
 
-    def get_scale_operator_xml(self):
+    @property
+    def xml_scale_operator(self) -> str:
         if self.fixed:
             return ''
         else:
-            return textwrap.dedent(f""" 
-                <operator id="ucedMeanScaler.c:snp" spec="ScaleOperator" parameter="@ucedMean.c:snp" scaleFactor="0.5" weight="1.0"/>
-                <operator id="ExpCategoriesRandomWalk.c:snp" spec="IntRandomWalkOperator" parameter="@expRateCategories.c:snp" weight="10.0" windowSize="1"/>
-                <operator id="ExpCategoriesSwapOperator.c:snp" spec="SwapOperator" intparameter="@expRateCategories.c:snp" weight="10.0"/>
-                <operator id="ExpCategoriesUniform.c:snp" spec="UniformOperator" parameter="@expRateCategories.c:snp" weight="10.0"/>
-            """)
+            # With default value configurations (should be ok for sensible template)
+            operators = [
+                ScaleOperator(
+                    id="ucreMeanScaleOperator",
+                    parameter="@ucreMean"
+                ).xml,
+                IntegerRandomWalkOperator(
+                    id="ucreCategoriesRandomWalk",
+                    parameter="@ucreRateCategories"
+                ).xml,
+                SwapOperator(
+                    id="ucreCategoriesSwap",
+                    parameter="@ucreRateCategories"
+                ).xml,
+                UniformOperator(
+                    id="ucreCategoriesUniform",
+                    parameter="@ucreRateCategories"
+                ).xml
+            ]
+            return "\n".join(operators)
 
-    def get_updown_operator_xml(self):
+    @property
+    def xml_updown_operator(self) -> str:
         if self.fixed:
             return ''
         else:
-            return textwrap.dedent(f"""
-                <operator id="relaxedUpDownOperatorExp.c:snp" spec="UpDownOperator" scaleFactor="0.75" weight="3.0">
-                    <up idref="ucedMean.c:snp"/>
-                    <down idref="Tree.t:snp"/>
-                </operator>
-            """)
+            return UpDownOperator(
+                id="ucreMeanUpDownOperator",
+                up_parameter="@ucreMean",
+                down_parameter="@Tree"
+            ).xml
 
 
-class RelaxedLogNormal(Clock):
-    state_node = f'<stateNode id="rateCategories.c:snp" spec="parameter.IntegerParameter" dimension="718">1</stateNode>'
+class UCRLClock(Clock):
+    state_node = f'<stateNode id="ucrlRateCategories" spec="parameter.IntegerParameter" ' \
+                 f'dimension="718">1</stateNode>'
 
-    def get_branch_rate_xml(self) -> str:
-        return textwrap.dedent(f""" 
-            <branchRateModel id="RelaxedClock.c:snp" spec="beast.evolution.branchratemodel.UCRelaxedClockModel" clock.rate="@ucldMean.c:snp" rateCategories="@rateCategories.c:snp" tree="@Tree.t:snp">
-                <LogNormal id="LogNormalDistributionModel.c:snp" S="@ucldSD" meanInRealSpace="true" name="distr">
-                    <parameter id="RealParameter.{uuid.uuid4()}" spec="parameter.RealParameter" estimate="false" lower="0.0" name="M" upper="1.0">1.0</parameter>
-                </LogNormal>
-            </branchRateModel>
-        """)
+    @property
+    def xml_branch_rate_model(self) -> str:
+        return UCRLBranchRateModel(
+            id="ucrlBranchRateModel",
+            parameter="@ucrlMean",
+            rate_categories_parameter="@ucrlRateCategories",
+            tree_parameter="@Tree"
+        ).xml
 
-    def get_scale_operator_xml(self):
+    @property
+    def xml_scale_operator(self) -> str:
         if self.fixed:
             return ""
         else:
-            return textwrap.dedent(f""" 
-                <operator id="ucldMeanScaler.c:snp" spec="ScaleOperator" parameter="@ucldMeanRate" scaleFactor="0.5" weight="1.0"/>
-                <operator id="ucldStdevScaler.c:snp" spec="ScaleOperator" parameter="@ucldSD" scaleFactor="0.5" weight="3.0"/>
-                <operator id="CategoriesRandomWalk.c:snp" spec="IntRandomWalkOperator" parameter="@rateCategories" weight="10.0" windowSize="1"/>
-                <operator id="CategoriesSwapOperator.c:snp" spec="SwapOperator" intparameter="@rateCategories" weight="10.0"/>
-                <operator id="CategoriesUniform.c:snp" spec="UniformOperator" parameter="@rateCategories" weight="10.0"/>
-            """)
+            operators = [
+                ScaleOperator(
+                    id="ucrlMeanScaleOperator",
+                    parameter="@ucrlMean",
+                    weight=1.0
+                ).xml,
+                ScaleOperator(
+                    id="ucrlSDScaleOperator",
+                    parameter="@ucrlSD",
+                    weight=3.0
+                ).xml,
+                IntegerRandomWalkOperator(
+                    id="ucrlCategoriesRandomWalk",
+                    parameter="@ucrlRateCategories"
+                ).xml,
+                SwapOperator(
+                    id="ucrlCategoriesSwap",
+                    parameter="@ucrlRateCategories"
+                ).xml,
+                UniformOperator(
+                    id="ucrlCategoriesUniform",
+                    parameter="@ucrlRateCategories"
+                ).xml
+            ]
+            return "\n".join(operators)
 
-    def get_updown_operator_xml(self):
+    @property
+    def xml_updown_operator(self) -> str:
         if self.fixed:
             return ""
         else:
-            return textwrap.dedent(f"""
-                <operator id="relaxedUpDownOperator.c:snp" spec="UpDownOperator" scaleFactor="0.75" weight="3.0">
-                    <up idref="ucldMean.c:snp"/>
-                    <down idref="Tree.t:snp"/>
-                </operator>
-            """)
+            return UpDownOperator(
+                id="ucrlMeanUpDownOperator",
+                up_parameter="@ucrlMean",
+                down_parameter="@Tree"
+            ).xml

@@ -7,10 +7,8 @@ def test_utils_get_uuid():
     WHEN:   utility function get_uuid() is called
     THEN:   a valid full length or short UUID string is returned
     """
-
     full = get_uuid()
     short = get_uuid(short=True)
-
     assert type(full) == str
     assert type(short) == str
     assert len(full) == 36

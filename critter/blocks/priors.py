@@ -1,8 +1,9 @@
+from pydantic import BaseModel, ValidationError, root_validator
 from critter.blocks.distributions import Distribution
 from critter.blocks.parameters import RealParameter
-from pydantic import BaseModel, ValidationError, root_validator
-from math import inf as infinity
 from critter.utils import get_uuid
+from critter.errors import CritterError
+from math import inf as infinity
 from typing import List
 
 
@@ -11,14 +12,12 @@ class Prior(BaseModel):
     id: str = f'Prior.{get_uuid(short=True)}'  # prior identifier prefix defined in all prior subclasses (id="")
 
     distribution: List[Distribution]  # prior distribution/s, configured
-    initial: list
+    initial: List
     lower: float = -infinity
     upper: float = infinity
     dimension: int = 1
     sliced: bool = False
     intervals: list = []
-    scw: str = None  # scale operator weight defined in clock subclasses
-    scx: str = None  # scale identifier defined in clock subclasses
     param_spec: str = "parameter.RealParameter"  # changes in MTDB model to IntegerParameter
 
     def __str__(self):
@@ -50,7 +49,7 @@ class Prior(BaseModel):
             id=f"{self.id}", name="stateNode", value=initial, spec=self.param_spec,
             dimension=self.dimension, lower=self.lower, upper=self.upper
         )
-        return str(param)
+        return param.xml
 
     @property
     def xml_logger(self) -> str:
@@ -61,7 +60,7 @@ class Prior(BaseModel):
     def xml_scale_operator(self):
         return
 
-    # Sliced priors
+    # Sliced priors: slice function, rate change times, and logger
     @property
     def xml_slice_function(self) -> str:
         if not self.sliced:
@@ -74,7 +73,7 @@ class Prior(BaseModel):
             return xml
 
     @property
-    def xml_slice_rate(self) -> str:
+    def xml_slice_rate_change_times(self) -> str:
         if not self.sliced:
             return ''
         else:
@@ -88,7 +87,7 @@ class Prior(BaseModel):
             elif self.id.startswith('becomeUninfectious'):
                 rate_change_times = 'deathRateChangeTimes'
             else:
-                raise ValidationError(
+                raise CritterError(
                     'Rate change times (slices or intervals) are only defined for: '
                     'rho and samplingProportion (<samplingRateChangeTimes/>), '
                     'reproductiveNumber (<birthRateChangeTimes/>) and'
@@ -109,7 +108,7 @@ class Prior(BaseModel):
 
     @root_validator
     def validate_sliced_id(cls, fields):
-        # Slicing only available for a subset of priors (BD Sky models)
+        # Slicing only available for a subset of priors (BDSky models)
         if fields.get('sliced') and not fields.get('id').startswith(
             ('origin', 'rho', 'samplingProportion', 'reproductiveNumber', 'becomeUninfectious')
         ):
@@ -180,17 +179,17 @@ class GroupSize(Prior):
 
 
 # Clock priors
-class Rate(Prior):
-    id = 'clockRate'  # default identifier in base.BranchRateModels target @
+class ClockRate(Prior):
+    id = 'clockRate'
 
 
-class UCED(Prior):
-    id = 'ucedMean'
+class UCRE(Prior):
+    id = 'ucreMean'
 
 
-class UCLDMean(Prior):
-    id = 'ucldMean'
+class UCRLMean(Prior):
+    id = 'ucrlMean'
 
 
-class UCLDSD(Prior):
-    id = 'ucldSD'
+class UCRLSD(Prior):
+    id = 'ucrlSD'
