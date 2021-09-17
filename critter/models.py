@@ -1,28 +1,34 @@
+from typing import List
 from pathlib import Path
 from critter.critter import Critter
+from critter.blocks.clocks import Clock
 from critter.blocks.priors import OriginPrior
 from critter.blocks.priors import ReproductiveNumberPrior
 from critter.blocks.priors import BecomeUninfectiousRatePrior
 from critter.blocks.priors import SamplingProportionPrior
-from critter.blocks.clocks import Clock
-from typing import List
 
 
 class BirthDeathSkylineSerial(Critter):
 
+    def write(self, xml: Path):
+        with xml.open() as xml_out:
+            xml_out.write(self.xml)
+
     def configure(
         self,
-        reproductive_number: ReproductiveNumberPrior,
-        become_uninfectious_rate: BecomeUninfectiousRatePrior,
-        sampling_proportion: SamplingProportionPrior,
+        clock: Clock,
         origin: OriginPrior,
-        clock: Clock
+        sampling_proportion: SamplingProportionPrior,
+        reproductive_number: ReproductiveNumberPrior,
+        become_uninfectious_rate: BecomeUninfectiousRatePrior
     ):
 
         template = self.load_template(name='bdss.xml')
 
         xml_slice_functions, xml_slice_rate_change_times, xml_slice_loggers = \
-            self.get_slice_xmls(priors=[reproductive_number, become_uninfectious_rate, sampling_proportion])
+            self.get_slice_xmls(
+                priors=[reproductive_number, become_uninfectious_rate, sampling_proportion]
+            )
 
         self.xml = template.render(
             data_xml=self.xml_alignment,
@@ -64,18 +70,18 @@ class BirthDeathSkylineSerial(Critter):
                 str(priors[1].sliced).lower(),
                 str(priors[2].sliced).lower()
             )
-        slice_function_xml, slice_rate_xml, slice_logger_xml = "", "", ""
+        slice_function_xml, slice_rate_change_times_xml, slice_logger_xml = "", "", ""
         for p in priors:
             slice_function_xml += p.xml_slice_function
-            slice_rate_xml += p.xml_slice_rate_change_times
+            slice_rate_change_times_xml += p.xml_slice_rate_change_times
             slice_logger_xml += p.xml_slice_logger
-        # why is this in here...
+
+        # if priors are not sliced, no slice functions
+        # rates or loggers are returned, so do not set
+        # the reverse time array
         if len(slice_function_xml) == 0:
             reverse_time_array = ""
-        slice_rate_xml += reverse_time_array
-        return slice_function_xml, slice_rate_xml, slice_logger_xml
 
-    @staticmethod
-    def write(self, xml: Path):
-        with xml.open() as xml_out:
-            xml_out.write(self.xml)
+        slice_rate_change_times_xml += reverse_time_array
+        return slice_function_xml, slice_rate_change_times_xml, slice_logger_xml
+

@@ -28,9 +28,10 @@
     {{ slice_functions }}
 
     <!--RUN BLOCK WITH MARKOV CHAIN AND MODEL PARAMETERS-->
+    {{ mcmc_xml }}
     <run>
-        <!--STATE BLOCK FOR INITIAL PARAMETERS-->
-        <state id="state" spec="State" storeEvery="5000">
+        <!--STATE BLOCK FOR INITIAL PARAMETERS - POSTERIOR EVERY USED FOR STATE STORE-->
+        <state id="state" spec="State" storeEvery="{{ posterior_every }}">
             <!--TREE BLOCK WITH DATES LINKING TO ALIGNMENT-->
             <tree id="Tree" spec="beast.evolution.tree.Tree" name="stateNode">
                 <trait id="dateTrait" spec="beast.evolution.tree.TraitSet" traitname="date-forward" value="{{ date_xml }}">
@@ -41,13 +42,13 @@
                 <taxonset idref="TaxonSet"/>
             </tree>
             <!--SUBSTITUTION PARAMETERS-->
-            <parameter id="freqParameter.s:snp" spec="parameter.RealParameter" dimension="4" lower="0.0" name="stateNode" upper="1.0">0.25</parameter>
-            <parameter id="rateAC.s:snp" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
-            <parameter id="rateAG.s:snp" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
-            <parameter id="rateAT.s:snp" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
-            <parameter id="rateCG.s:snp" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
-            <parameter id="rateGT.s:snp" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
-            <parameter id="gammaShape.s:snp" spec="parameter.RealParameter" name="stateNode">10.0</parameter>
+            <parameter id="freqParameter" spec="parameter.RealParameter" dimension="4" lower="0.0" name="stateNode" upper="1.0">0.25</parameter>
+            <parameter id="rateAC" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
+            <parameter id="rateAG" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
+            <parameter id="rateAT" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
+            <parameter id="rateCG" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
+            <parameter id="rateGT" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
+            <parameter id="gammaShape" spec="parameter.RealParameter" name="stateNode">10.0</parameter>
             <!--MODEL PARAMETERS-->
             {{ origin_param }}
             {{ reproductive_number_param }}
@@ -57,6 +58,157 @@
             {{ clock_param }}
             {{ clock_state_node }}
         </state>
+
+        <!--RANDOM STARTING TREE BLOCK-->
+        <init id="RandomTree" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree" taxa="@Alignment">
+            <populationModel id="ConstantPopulation" spec="ConstantPopulation">
+                <parameter id="randomPopSize" spec="parameter.RealParameter" name="popSize">1.0</parameter>
+            </populationModel>
+        </init>
+        <!--POSTERIOR DISTRIBUTION BLOCK-->
+        <distribution id="posterior" spec="util.CompoundDistribution">
+                <!--PRIOR DISTRIBUTION BLOCKS-->
+                <distribution id="prior" spec="util.CompoundDistribution">
+                    <!--BDSKY PRIOR BLOCK-->
+                    <distribution
+                        id="BDSKY_Serial"
+                        spec="beast.evolution.speciation.BirthDeathSkylineModel"
+                        becomeUninfectiousRate="@becomeUninfectiousRate"
+                        origin="@originPrior"
+                        reproductiveNumber="@reproductiveNumber"
+                        samplingProportion="@samplingProportion"
+                        tree="@Tree"
+                    >
+                    {{ slice_rates }}
+                    </distribution>
+
+                    <!--SUBSTITUTION MODEL PRIOR BLOCK-->
+                    <Prior id="FrequenciesPrior" name="distribution" x="@freqParameter">
+                        <Uniform id="Uniform.3" name="distr"/>
+                    </Prior>
+                    <Prior id="GammaShapePrior" name="distribution" x="@gammaShape">
+                        <Exponential id="Exponential.0" name="distr">
+                            <parameter id="RealParameter.0" spec="parameter.RealParameter" estimate="false" name="mean">10.0</parameter>
+                        </Exponential>
+                    </Prior>
+                    <Prior id="RateACPrior" name="distribution" x="@rateAC">
+                        <Gamma id="Gamma.0" name="distr">
+                            <parameter id="RealParameter.1" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
+                            <parameter id="RealParameter.2" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter>
+                        </Gamma>
+                    </Prior>
+                    <Prior id="RateAGPrior" name="distribution" x="@rateAG">
+                        <Gamma id="Gamma.1" name="distr">
+                            <parameter id="RealParameter.3" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
+                            <parameter id="RealParameter.4" spec="parameter.RealParameter" estimate="false" name="beta">20.0</parameter>
+                        </Gamma>
+                    </Prior>
+                    <Prior id="RateATPrior" name="distribution" x="@rateAT">
+                        <Gamma id="Gamma.2" name="distr">
+                            <parameter id="RealParameter.5" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
+                            <parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter>
+                        </Gamma>
+                    </Prior>
+                    <Prior id="RateCGPrior" name="distribution" x="@rateCG">
+                        <Gamma id="Gamma.3" name="distr">
+                            <parameter id="RealParameter.7" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
+                            <parameter id="RealParameter.8" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter>
+                        </Gamma>
+                    </Prior>
+                    <Prior id="RateGTPrior" name="distribution" x="@rateGT">
+                        <Gamma id="Gamma.4" name="distr">
+                            <parameter id="RealParameter.11" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
+                            <parameter id="RealParameter.12" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter>
+                        </Gamma>
+                    </Prior>
+                    <!--MODEL AND CLOCK PRIOR BLOCK-->
+                    {{ origin_prior }}
+                    {{ reproductive_number_prior }}
+                    {{ sampling_proportion_prior }}
+                    {{ become_uninfectious_prior }}
+                    {{ clock_prior }}
+                </distribution>
+            <!--POSTERIOR LIKELIHOOD BLOCK-->
+            <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
+                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" data="@Alignment" tree="@Tree">
+                    <!--SITE MODEL BLOCK-->
+                    <siteModel id="SiteModel" spec="SiteModel" gammaCategoryCount="4" shape="@gammaShape">
+                        <parameter id="mutationRate" spec="parameter.RealParameter" estimate="false" name="mutationRate">1.0</parameter>
+                        <parameter id="proportionInvariant" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
+                        <!--SUBSTITUTION MODEL BLOCK-->
+                        <substModel id="gtr" spec="GTR" rateAC="@rateAC" rateAG="@rateAG" rateAT="@rateAT" rateCG="@rateCG" rateGT="@rateGT">
+                            <parameter id="rateCT" spec="parameter.RealParameter" estimate="false" lower="0.0" name="rateCT">1.0</parameter>
+                            <frequencies id="estimatedFreqs" spec="Frequencies" frequencies="@freqParameter"/>
+                        </substModel>
+                    </siteModel>
+                    {{ clock_branch_rate }}
+                </distribution>
+            </distribution>
+        </distribution>
+
+        <!--OPERATOR BLOCK-->
+        <operator id="FrequenciesExchanger" spec="DeltaExchangeOperator" delta="0.01" weight="0.1">
+            <parameter idref="freqParameter"/>
+        </operator>
+        <operator id="rateACScaler" spec="ScaleOperator" parameter="@rateAC" scaleFactor="0.5" weight="0.1"/>
+        <operator id="rateAGScaler" spec="ScaleOperator" parameter="@rateAG" scaleFactor="0.5" weight="0.1"/>
+        <operator id="rateATScaler" spec="ScaleOperator" parameter="@rateAT" scaleFactor="0.5" weight="0.1"/>
+        <operator id="rateCGScaler" spec="ScaleOperator" parameter="@rateCG" scaleFactor="0.5" weight="0.1"/>
+        <operator id="rateGTScaler" spec="ScaleOperator" parameter="@rateGT" scaleFactor="0.5" weight="0.1"/>
+        <operator id="gammaShapeScaler" spec="ScaleOperator" parameter="@gammaShape" scaleFactor="0.5" weight="0.1"/>
+        <operator id="serialTreeScaler" spec="ScaleOperator" scaleFactor="0.5" tree="@Tree" weight="3.0"/>
+        <operator id="serialTreeRootScaler" spec="ScaleOperator" rootOnly="true" scaleFactor="0.5" tree="@Tree" weight="3.0"/>
+        <operator id="serialUniformOperator" spec="Uniform" tree="@Tree" weight="30.0"/>
+        <operator id="serialSubtreeSlide" spec="SubtreeSlide" tree="@Tree" weight="15.0"/>
+        <operator id="srialNarrow" spec="Exchange" tree="@Tree" weight="15.0"/>
+        <operator id="serialWide" spec="Exchange" isNarrow="false" tree="@Tree" weight="3.0"/>
+        <operator id="serialWilsonBalding" spec="WilsonBalding" tree="@Tree" weight="3.0"/>
+        <operator id="becomeUninfectiousRateScaler" spec="ScaleOperator" parameter="@becomeUninfectiousRate" scaleFactor="0.75" weight="2.0"/>
+        <operator id="reproductiveNumberScaler" spec="ScaleOperator" parameter="@reproductiveNumber" scaleFactor="0.75" weight="10.0"/>
+        <operator id="samplingProportionScaler" spec="ScaleOperator" parameter="@samplingProportion" scaleFactor="0.75" weight="10.0"/>
+        <operator id="originScaler" spec="ScaleOperator" parameter="@origin" scaleFactor="0.75" weight="1.0"/>
+        <operator id="updownBD" spec="UpDownOperator" scaleFactor="0.75" weight="2.0">
+            <up idref="reproductiveNumber"/>
+            <down idref="becomeUninfectiousRate"/>
+        </operator>
+
+        {{ clock_scale_operator }}
+        {{ clock_updown_operator }}
+
+        <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
+
+        <!--LOGGER BLOCK-->
+        <logger id="tracelog" spec="Logger" fileName="{{ posterior_log }}" logEvery="{{ posterior_every }}" model="@posterior" sanitiseHeaders="true" sort="smart">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+            <log idref="treeLikelihood"/>
+            <log id="TreeHeight" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree"/>
+            <log idref="freqParameter"/>
+            <log idref="rateAC"/>
+            <log idref="rateAG"/>
+            <log idref="rateAT"/>
+            <log idref="rateCG"/>
+            <log idref="rateGT"/>
+            <log idref="gammaShape"/>
+            <log idref="BDSKY_Serial"/>
+            <log idref="origin"/>
+            <log idref="becomeUninfectiousRate"/>
+            <log idref="reproductiveNumber"/>
+            <log idref="samplingProportion"/>
+            {{ clock_logger }}
+            {{ slice_loggers }}
+        </logger>
+        <!--POSTERIOR EVERY USED FOR SCREEN LOG-->
+        <logger id="screenlog" spec="Logger" fileName="" logEvery="{{ posterior_every }}">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+        </logger>
+
+        <logger id="treelog" spec="Logger" fileName="{{ tree_log }}" logEvery="{{ tree_every }}" mode="tree">
+            <log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree"/>
+        </logger>
 
     </run>
 </beast>

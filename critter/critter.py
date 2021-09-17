@@ -9,16 +9,16 @@ class Critter:
 
     def __init__(
         self,
-        reference_file: Path,
-        alignment_file: Path,
         date_file: Path,
+        alignment_file: Path,
+        reference_file: Path,
+        output_prefix: str = "model",
         tree_log: Path = Path('trees.log'),
         posterior_log: Path = Path('posteriors.log'),
         sample_every: int = 1000,
         chain_length: int = 100000,
         chain_type: str = 'default',
         chain_number: int = 4,
-        output_prefix: str = "bdss",
         missing_dates: bool = False
     ):
 
@@ -86,9 +86,9 @@ class Critter:
                 f'resampleEvery="{self.sample_every}">'
         else:
             return f'<run ' \
-                   f'id="mcmc" ' \
-                   f'spec="MCMC" ' \
-                   f'chainLength="{self.chain_length}">'
+                f'id="mcmc" ' \
+                f'spec="MCMC" ' \
+                f'chainLength="{self.chain_length}">'
 
     @property
     def xml_dates(self) -> str:

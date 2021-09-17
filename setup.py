@@ -13,6 +13,8 @@ setup(
         "fastapi",
         "colorama",
         "pyyaml",
+        "pytest",
+        "pytest-cov",
         "pydantic",
         "requests",
         "typer",

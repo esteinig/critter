@@ -25,10 +25,9 @@ def test_clock_base_create_success():
     )
     assert clock.id.startswith("Clock.")
     assert clock.fixed is False
-    assert clock.state_node == ''
+    assert clock.xml_state_node == ''
     assert isinstance(clock.prior[0], Prior)
     # Returns valid XMLs for single prior config of clock model
-    assert clock.xml_state_node == clock.state_node
     assert clock.xml == prior.xml
     assert str(clock) == prior.xml
     assert clock.xml_prior == prior.xml
@@ -88,7 +87,6 @@ def test_clock_strict_create_success():
     strict_clock = StrictClock(
         prior=[strict_prior]
     )
-    assert strict_clock.state_node == ''
     assert strict_clock.xml_state_node == ''
     assert strict_clock.xml_branch_rate_model == StrictBranchRateModel(
         id="strictClockBranchRate",
@@ -128,13 +126,6 @@ def test_clock_ucre_create_success():
     ucre_clock = UCREClock(
         prior=[ucre_prior]
     )
-    assert ucre_clock.state_node == \
-        f'<stateNode ' \
-        f'id="ucreRateCategories" ' \
-        f'spec="parameter.IntegerParameter" ' \
-        f'dimension="718">' \
-        f'1' \
-        f'</stateNode>'
     assert ucre_clock.xml_state_node == \
         f'<stateNode ' \
         f'id="ucreRateCategories" ' \
@@ -200,13 +191,6 @@ def test_clock_ucrl_create_success():
     ucrl_clock = UCRLClock(
         prior=[ucrl_mean_prior, ucrl_sd_prior]
     )
-    assert ucrl_clock.state_node == \
-        f'<stateNode ' \
-        f'id="ucrlRateCategories" ' \
-        f'spec="parameter.IntegerParameter" ' \
-        f'dimension="718">' \
-        f'1' \
-        f'</stateNode>'
     assert ucrl_clock.xml_state_node == \
         f'<stateNode ' \
         f'id="ucrlRateCategories" ' \

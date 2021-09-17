@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, ValidationError, root_validator
 from critter.blocks.distributions import Distribution
 from critter.blocks.parameters import RealParameter
@@ -27,7 +28,8 @@ class Prior(BaseModel):
     def xml(self) -> str:
         if not self.sliced:
             # Normal singular prior distribution
-            return f'<Prior id="{self.id}Prior" ' \
+            return f'<Prior ' \
+                   f'id="{self.id}Prior" ' \
                    f'name="distribution" ' \
                    f'x="@{self.id}">' \
                    f'{self.distribution[0].xml}' \

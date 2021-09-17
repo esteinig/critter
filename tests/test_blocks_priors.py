@@ -41,22 +41,22 @@ def test_prior_create_default_success():
     assert prior.param_spec == "parameter.RealParameter"
     # XML blocks
     assert prior.xml.startswith(
-        f'<prior '
+        f'<Prior '
         f'id="{prior.id}Prior" '
         f'name="distribution" '
         f'x="@{prior.id}">'
     )
-    assert prior.xml.endswith('</prior>')
+    assert prior.xml.endswith('</Prior>')
     assert str(prior) == prior.xml
     assert prior.distribution[0].xml in prior.xml
     # Test alias of xml property
     assert prior.xml_prior.startswith(
-        f'<prior '
+        f'<Prior '
         f'id="{prior.id}Prior" '
         f'name="distribution" '
         f'x="@{prior.id}">'
     )
-    assert prior.xml_prior.endswith('</prior>')  # allow for line breaks at ends
+    assert prior.xml_prior.endswith('</Prior>')  # allow for line breaks at ends
     assert prior.distribution[0].xml in prior.xml_prior
     # Test of other xml properties
     assert prior.xml_scale_operator is None
@@ -110,20 +110,20 @@ def test_prior_create_sliced_success():
 
     # Multiple priors for slices, get slice XMLs
     for i, distribution in enumerate(prior.distribution):
-        true_prior_xml = f'<prior ' \
-                         f'id="{prior.id}Slice{i+1}" ' \
-                         f'name="distribution" ' \
-                         f'x="@{prior.id}{i+1}">' \
-                         f'{distribution.xml}' \
-                         f'</prior>'
+        true_prior_xml = f'<Prior ' \
+            f'id="{prior.id}Slice{i+1}" ' \
+            f'name="distribution" ' \
+            f'x="@{prior.id}{i+1}">' \
+            f'{distribution.xml}' \
+            f'</Prior>'
         assert true_prior_xml in prior.xml
         assert true_prior_xml in prior.xml_prior
         true_slice_func_xml = f'<function ' \
-                              f'spec="beast.core.util.Slice" ' \
-                              f'id="{prior.id}{i+1}" ' \
-                              f'arg="@{prior.id}" ' \
-                              f'index="{i}" ' \
-                              f'count="1"/>'
+            f'spec="beast.core.util.Slice" ' \
+            f'id="{prior.id}{i+1}" ' \
+            f'arg="@{prior.id}" ' \
+            f'index="{i}" ' \
+            f'count="1"/>'
         assert true_slice_func_xml in prior.xml_slice_function
         true_slice_logger_xml = f'<log idref="{prior.id}{i+1}"/>'
         assert true_slice_logger_xml in prior.xml_slice_logger
@@ -139,7 +139,7 @@ def test_prior_create_sliced_success():
         prior.id = bd_prior
         true_slice_rate_xml = f'<{xml_spec} ' \
                               f'spec="beast.core.parameter.RealParameter" ' \
-                              f'value="{intervals}"/>'
+                              f'value="{intervals}"/>\n'
         assert true_slice_rate_xml == prior.xml_slice_rate_change_times
 
 
@@ -229,24 +229,24 @@ def test_prior_subclass_create_success():
     assert ps_coal.id == "bGroupSizes"
     assert ps_coal.param_spec == "parameter.IntegerParameter"
     assert ps_coal.state_node_group_size == f'<stateNode ' \
-                                            f'id="bGroupSizes" ' \
-                                            f'spec="parameter.IntegerParameter" ' \
-                                            f'dimension="{ps_coal.dimension}">' \
-                                            f'{ps_coal.initial}' \
-                                            f'</stateNode>'
+        f'id="bGroupSizes" ' \
+        f'spec="parameter.IntegerParameter" ' \
+        f'dimension="{ps_coal.dimension}">' \
+        f'{ps_coal.initial}' \
+        f'</stateNode>'
     assert sp_mtbd.get_include_string() == 'true'
 
     # Multi type birth death XML components
     _incl = sp_mtbd.get_include_string()
     _dist = f'<distribution ' \
-            f'id="{sp_mtbd.id}Prior" ' \
-            f'spec="multitypetree.distributions.ExcludablePrior" ' \
-            f'x="@{sp_mtbd.id}">'
+        f'id="{sp_mtbd.id}Prior" ' \
+        f'spec="multitypetree.distributions.ExcludablePrior" ' \
+        f'x="@{sp_mtbd.id}">'
     _xinclude = f'<xInclude id="samplingProportionXInclude" ' \
-                f'spec="parameter.BooleanParameter" ' \
-                f'dimension="{sp_mtbd.dimension}">' \
-                f'{_incl}' \
-                f'</xInclude>'
+        f'spec="parameter.BooleanParameter" ' \
+        f'dimension="{sp_mtbd.dimension}">' \
+        f'{_incl}' \
+        f'</xInclude>'
     assert sp_mtbd.xml.startswith(_dist)
     assert _xinclude in sp_mtbd.xml
     assert sp_mtbd.distribution[0].xml in sp_mtbd.xml
@@ -259,16 +259,16 @@ def test_mtbd_prior_xml_success():
     mtbd = SamplingProportionMultiTypePrior(initial=[1.0, 0., 1.0], distribution=[exp])
 
     assert mtbd.xml == f'<distribution ' \
-                       f'id="samplingProportionPrior" ' \
-                       f'spec="multitypetree.distributions.ExcludablePrior" ' \
-                       f'x="@samplingProportion">' \
-                       f'<xInclude id="samplingProportionXInclude" ' \
-                       f'spec="parameter.BooleanParameter" ' \
-                       f'dimension="1">' \
-                       f'true false true' \
-                       f'</xInclude>' \
-                       f'{exp.xml}' \
-                       f'</distribution>'
+        f'id="samplingProportionPrior" ' \
+        f'spec="multitypetree.distributions.ExcludablePrior" ' \
+        f'x="@samplingProportion">' \
+        f'<xInclude id="samplingProportionXInclude" ' \
+        f'spec="parameter.BooleanParameter" ' \
+        f'dimension="1">' \
+        f'true false true' \
+        f'</xInclude>' \
+        f'{exp.xml}' \
+        f'</distribution>'
 
 
 
