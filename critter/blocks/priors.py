@@ -27,21 +27,21 @@ class Prior(BaseModel):
     def xml(self) -> str:
         if not self.sliced:
             # Normal singular prior distribution
-            return f'<prior id="{self.id}Prior" ' \
+            return f'<Prior id="{self.id}Prior" ' \
                    f'name="distribution" ' \
                    f'x="@{self.id}">' \
                    f'{self.distribution[0].xml}' \
-                   f'</prior>'
+                   f'</Prior>'
         else:
             # Sliced sampling proportion distribution per interval
             sliced_priors = ''
             for i, distribution in enumerate(self.distribution):
-                sliced_priors += f'<prior ' \
+                sliced_priors += f'<Prior ' \
                                  f'id="{self.id}Slice{i+1}" ' \
                                  f'name="distribution" ' \
                                  f'x="@{self.id}{i+1}">' \
                                  f'{distribution.xml}' \
-                                 f'</prior>'
+                                 f'</Prior>'
             return sliced_priors
 
     @property  # alias
@@ -111,7 +111,7 @@ class Prior(BaseModel):
 
             return f'<{rate_change_times} ' \
                    f'spec="beast.core.parameter.RealParameter" ' \
-                   f'value="{intervals}"/>'
+                   f'value="{intervals}"/>\n'
 
     @property
     def xml_slice_logger(self) -> str:
@@ -125,7 +125,7 @@ class Prior(BaseModel):
 
     @root_validator
     def validate_sliced_id(cls, fields):
-        # Slicing only available for a subset of priors (BDSky models)
+        # Slicing only available for birth death models at the moment
         if fields.get('sliced') and not fields.get('id').startswith(
             ('origin', 'rho', 'samplingProportion', 'reproductiveNumber', 'becomeUninfectious')
         ):
