@@ -15,10 +15,7 @@ setup(
         "pyyaml",
         "pydantic",
         "requests",
-        "typer",
-        "pyfastx",
-        "jinja2",
-        "pandas"
+        "typer"
     ],
     extras_require={
       'tests': ['pytest', 'pytest-cov']

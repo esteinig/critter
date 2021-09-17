@@ -12,6 +12,7 @@ class Clock(BaseModel):
 
     prior: List[Prior]
     fixed: bool = False
+    state_node: str = ''  # defined in some clock subclasses
 
     def __str__(self):
         return self.xml
@@ -35,7 +36,7 @@ class Clock(BaseModel):
 
     @property
     def xml_state_node(self):
-        return ''
+        return self.state_node
 
     # Defined in clock subclasses
     @property
@@ -95,15 +96,12 @@ class StrictClock(Clock):
 
 
 class UCREClock(Clock):
-
-    @property
-    def xml_state_node(self):
-        return f'<stateNode ' \
-            f'id="ucreRateCategories" ' \
-            f'spec="parameter.IntegerParameter" ' \
-            f'dimension="718">' \
-            f'1' \
-            f'</stateNode>'
+    state_node = f'<stateNode ' \
+                 f'id="ucreRateCategories" ' \
+                 f'spec="parameter.IntegerParameter" ' \
+                 f'dimension="718">' \
+                 f'1' \
+                 f'</stateNode>'
 
     @property
     def xml_branch_rate_model(self) -> str:
@@ -153,15 +151,12 @@ class UCREClock(Clock):
 
 
 class UCRLClock(Clock):
-
-    @property
-    def xml_state_node(self):
-        return f'<stateNode ' \
-            f'id="ucrlRateCategories" ' \
-            f'spec="parameter.IntegerParameter" ' \
-            f'dimension="718">' \
-            f'1' \
-            f'</stateNode>'
+    state_node = f'<stateNode ' \
+                 f'id="ucrlRateCategories" ' \
+                 f'spec="parameter.IntegerParameter" ' \
+                 f'dimension="718">' \
+                 f'1' \
+                 f'</stateNode>'
 
     @property
     def xml_branch_rate_model(self) -> str:
