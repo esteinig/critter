@@ -75,8 +75,23 @@ def test_prior_create_default_success():
     assert prior.xml_slice_rate_change_times == ''
     assert prior.xml_slice_logger == ''
 
+    # Initial list or distribution list cannot be empty
+    with raises(ValidationError):
+        prior = Prior(
+            id="samplingProportion",
+            distribution=[Exponential(mean=0.5)],
+            initial=[],
+            dimension=1
+        )
+    with raises(ValidationError):
+        prior = Prior(
+            id="samplingProportion",
+            distribution=[],
+            initial=[1.0],
+            dimension=1
+        )
 
-# TODO: implement validators that constrain the prior slice config lists
+
 def test_prior_create_sliced_success():
     """
     GIVEN: Prior with valid required params for a slice configuration
@@ -152,11 +167,74 @@ def test_prior_create_sliced_fail():
     with raises(ValidationError):
         Prior(
             id="nameFailsToInitSlicedPrior",  # slices only available for BD models
-            sliced=True,  # ... when sliced is True
+            sliced=True,
             dimension=2,
             intervals=[10.1, 5.1],
             distribution=[Exponential(mean=0.5), Exponential(mean=1.0)],
             initial=[1.0, 2.0]
+        )
+    with raises(ValidationError):
+        Prior(
+            id="samplingProportion",
+            sliced=True,
+            dimension=2,
+            intervals=[10.1, 5.1],
+            distribution=[Exponential(mean=0.5), Exponential(mean=1.0)],
+            initial=[]  # no initial values
+        )
+    with raises(ValidationError):
+        Prior(
+            id="samplingProportion",
+            sliced=True,
+            dimension=2,
+            intervals=[],  # no intervals
+            distribution=[Exponential(mean=0.5), Exponential(mean=1.0)],
+            initial=[1.0, 2.0]
+        )
+    with raises(ValidationError):
+        Prior(
+            id="samplingProportion",
+            sliced=True,
+            dimension=2,
+            intervals=[1.0],  # not enough intervals
+            distribution=[Exponential(mean=0.5), Exponential(mean=1.0)],
+            initial=[1.0, 2.0]
+        )
+    with raises(ValidationError):
+        Prior(
+            id="samplingProportion",
+            sliced=True,
+            dimension=2,
+            intervals=[11.1, 10.1],
+            distribution=[], # no distributions
+            initial=[1.0, 2.0]
+        )
+    with raises(ValidationError):
+        Prior(
+            id="samplingProportion",
+            sliced=True,
+            dimension=2,
+            intervals=[11.1, 10.1],
+            distribution=[Exponential(mean=0.5)], # not enough distributiuons
+            initial=[1.0, 2.0]
+        )
+    with raises(ValidationError):
+        Prior(
+            id="samplingProportion",
+            sliced=True,
+            dimension=1,  # not enough dimensions
+            intervals=[11.1, 10.1],
+            distribution=[Exponential(mean=0.5)],
+            initial=[1.0, 2.0]
+        )
+    with raises(ValidationError):
+        Prior(
+            id="samplingProportion",
+            sliced=True,
+            dimension=2,  
+            intervals=[11.1, 10.1],
+            distribution=[Exponential(mean=0.5)],
+            initial=[1.0] # not enough initial values
         )
 
 

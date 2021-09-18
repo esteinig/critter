@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, ValidationError, root_validator
+from pydantic import BaseModel, ValidationError, root_validator, validator
 from critter.blocks.distributions import Distribution
 from critter.blocks.parameters import RealParameter
 from critter.utils import get_uuid
@@ -13,7 +13,7 @@ class Prior(BaseModel):
     id: str = f'Prior.{get_uuid(short=True)}'  # prior identifier prefix defined in all prior subclasses (id="")
 
     distribution: List[Distribution]  # prior distribution/s, configured
-    initial: List
+    initial: List[float]
     lower: float = -infinity
     upper: float = infinity
     dimension: int = 1
@@ -53,7 +53,7 @@ class Prior(BaseModel):
     @property
     def xml_param(self) -> str:
         # Allow for higher dimensions using slices
-        initial = " ".join(str(i) for i in self.initial) if len(self.initial) > 1 else self.initial[0]
+        initial = " ".join(str(i) for i in self.initial)
         param = RealParameter(  # TODO: validators on RealParameter
             id=f"{self.id}",
             name="stateNode",
@@ -121,23 +121,65 @@ class Prior(BaseModel):
             return ''
         else:
             loggers = ''
-            for i, value in enumerate(self.distribution):
+            for i, _ in enumerate(self.distribution):
                 loggers += f'<log idref="{self.id}{i+1}"/>\n'
             return loggers
 
+    @validator("initial")
+    def validate_initial_not_empty(cls, v):
+        if len(v) == 0:
+            raise ValidationError(
+                "Initial value(s) must be specified as non-empty list"
+            )
+        return v
+
+    @validator("distribution")
+    def validate_distribution_not_empty(cls, v):
+        if len(v) == 0:
+            raise ValidationError(
+                "Distribution(s) must be specified as non-empty list"
+            )
+        return v
+
     @root_validator
-    def validate_sliced_id(cls, fields):
+    def validate_sliced_config(cls, fields):
         # Slicing only available for birth death models at the moment
-        if fields.get('sliced') and not fields.get('id').startswith(
+        # TODO: slice intervals ordered correctly
+        sliced = fields.get('sliced')
+        initial = fields.get('initial')
+        dimension = fields.get('dimension')
+        intervals = fields.get('intervals')
+        distribution = fields.get('distribution')
+
+        if sliced and not fields.get('id').startswith(
             ('origin', 'rho', 'samplingProportion', 'reproductiveNumber', 'becomeUninfectious')
         ):
             raise ValidationError(
-                'Cannot create a sliced prior that does not belong to a valid birth-death model prior. '
-                'Sliced prior model identifier fields must start with one of: '
-                'origin, rho, samplingProportion, reproductiveNumber, becomeUninfectious'
+                'Cannot create a sliced prior that does not belong to a valid birth-death model prior'
             )
-        else:
-            return fields
+        if sliced and dimension <= 1:
+            raise ValidationError(
+                'A sliced prior cannot have less than two dimensions'
+            )
+        if sliced and len(initial) != dimension:
+            raise ValidationError(
+                'Number of initial values in a sliced prior must be equal to the number of dimensions'
+            )
+        if sliced and len(distribution) != dimension:
+            raise ValidationError(
+                'Number of distributions in a sliced prior must be equal to the number of dimensions'
+            )
+        if sliced and not intervals:
+            raise ValidationError(
+                'In a sliced prior, the list of intervals may not be empty'
+            )
+        if sliced and len(intervals) != dimension:
+            raise ValidationError(
+                'Number of slice intervals must be equal to the number of dimensions'
+            )
+        return fields
+
+    
 
 
 # Birth-Death Skyline Serial

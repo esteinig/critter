@@ -1,4 +1,4 @@
-from typing import List
+from typing import Tuple
 from pathlib import Path
 from critter.critter import Critter
 from critter.blocks.clocks import Clock
@@ -11,7 +11,7 @@ from critter.blocks.priors import SamplingProportionPrior
 class BirthDeathSkylineSerial(Critter):
 
     def write(self, xml: Path):
-        with xml.open() as xml_out:
+        with xml.open('w') as xml_out:
             xml_out.write(self.xml)
 
     def configure(
@@ -21,13 +21,13 @@ class BirthDeathSkylineSerial(Critter):
         sampling_proportion: SamplingProportionPrior,
         reproductive_number: ReproductiveNumberPrior,
         become_uninfectious_rate: BecomeUninfectiousRatePrior
-    ):
+    ) -> str:
 
         template = self.load_template(name='bdss.xml')
 
         xml_slice_functions, xml_slice_rate_change_times, xml_slice_loggers = \
             self.get_slice_xmls(
-                priors=[reproductive_number, become_uninfectious_rate, sampling_proportion]
+                priors=(reproductive_number, become_uninfectious_rate, sampling_proportion)
             )
 
         self.xml = template.render(
@@ -53,19 +53,21 @@ class BirthDeathSkylineSerial(Critter):
             clock_scale_operator=clock.xml_scale_operator,
             clock_updown_operator=clock.xml_updown_operator,
             clock_logger=clock.xml_logger,
-            slice_functions=slice_function_xml,
-            slice_rates=slice_rate_xml,
-            slice_loggers=slice_logger_xml
+            slice_functions=xml_slice_functions,
+            slice_rates=xml_slice_rate_change_times,
+            slice_loggers=xml_slice_loggers
         )
+
+        return self.xml
 
     @staticmethod
     def get_slice_xmls(
-        priors: List[ReproductiveNumberPrior, BecomeUninfectiousRatePrior, SamplingProportionPrior]
-    ) -> (str, str, str):
+        priors: Tuple[ReproductiveNumberPrior, BecomeUninfectiousRatePrior, SamplingProportionPrior]
+    ) -> Tuple[str, str, str]:
 
         reverse_time_array = \
             '<reverseTimeArrays spec="beast.core.parameter.BooleanParameter" ' \
-            'value="{0} {1} {2} false false"/>'.format(
+            'value="{0} {1} {2} false false"/>\n'.format(
                 str(priors[0].sliced).lower(),
                 str(priors[1].sliced).lower(),
                 str(priors[2].sliced).lower()
@@ -76,9 +78,9 @@ class BirthDeathSkylineSerial(Critter):
             slice_rate_change_times_xml += p.xml_slice_rate_change_times
             slice_logger_xml += p.xml_slice_logger
 
-        # if priors are not sliced, no slice functions
-        # rates or loggers are returned, so do not set
-        # the reverse time array
+        # if no priors are sliced, empty slice functions,
+        # rates or loggers are returned, do not configure
+        # the reverse time array in this case either
         if len(slice_function_xml) == 0:
             reverse_time_array = ""
 

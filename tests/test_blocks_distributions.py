@@ -230,3 +230,36 @@ def test_distributions_create_param_success():
     assert alpha_param_gamma in str(gamma)
     assert beta_param_gamma in str(gamma)
 
+def test_distributions_lognormal_none_success():
+    """
+    GIVEN: LogNormal sistribution with no params for internal RealParameters
+    WHEN:  Distribution subclass instance is created
+    THEN:  Distribution subclass instance string contains the correct RealParameter string
+    """
+
+    # Special case for the UCRLBranchRateModel parameterisation 
+    # which for some arcane reason contains the SD parameter
+    # inside the distribution main parameter definitions (HTML)
+    
+    lgn1 = LogNormal(
+        id='test',
+        mean=None,
+        sd=2.0,
+        real_space=True
+    )
+    lgn2 = LogNormal(
+        id='test',
+        mean=1.0,
+        sd=None,
+        real_space=True
+    )
+    lgn3 = LogNormal(
+        id='test',
+        mean=None,
+        sd=None,
+        real_space=True
+    )
+
+    assert len(lgn1.params) == 1
+    assert len(lgn2.params) == 1
+    assert len(lgn3.params) == 0

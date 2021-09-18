@@ -10,7 +10,7 @@ class Distribution(BaseModel, extra=Extra.allow):
     """ Distribution base class """
     id: str = f'Distribution.{get_uuid(short=True)}'
     # parameters defined in subclasses as RealParameters
-    # this let's users config the parameter block id
+    # this lets users config the parameter block id
     params: List[RealParameter] = list()
     # optional sub model pythonic attributes -> original name
     _attr_name = {
