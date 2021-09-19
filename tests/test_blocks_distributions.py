@@ -78,10 +78,11 @@ def test_base_distribution_default_xml_string():
     xml = str(Distribution(
         id="Gamma"
     ))
-    no_param_xml = f'<Distribution ' \
-                   f'id="Gamma"  ' \
-                   f'name="distr">' \
-                   f'</Distribution>'  # space!
+    no_param_xml = \
+        '<Distribution ' \
+        'id="Gamma"  ' \
+        'name="distr">' \
+        '</Distribution>'  # space!
     assert xml == no_param_xml
     # Multiple parameter XML distribution string
     param1 = RealParameter(
@@ -98,12 +99,13 @@ def test_base_distribution_default_xml_string():
         id="Base"
     )
     xml.params = [param1, param2]
-    param_xml = f'<Distribution ' \
-                f'id="Base"  ' \
-                f'name="distr">' \
-                f'{str(param1)}' \
-                f'{str(param2)}' \
-                f'</Distribution>'  # space!
+    param_xml = \
+        f'<Distribution ' \
+        f'id="Base"  ' \
+        f'name="distr">' \
+        f'{str(param1)}' \
+        f'{str(param2)}' \
+        f'</Distribution>'  # space!
     assert str(xml) == param_xml
 
 

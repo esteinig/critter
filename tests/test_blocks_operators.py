@@ -16,9 +16,10 @@ def test_base_operator_create_success():
         id="test",
         spec="test"
     )
-    assert op.xml == '<operator ' \
-                     'id="test" ' \
-                     'spec="test"/>'
+    assert op.xml == \
+        '<operator ' \
+        'id="test" ' \
+        'spec="test"/>'
     assert str(op) == op.xml
 
 
@@ -32,13 +33,14 @@ def test_scale_operator_create_success():
         id="test",
         parameter="@test"
     )
-    assert op.xml == f'<operator ' \
-                     f'id="test" ' \
-                     f'spec="ScaleOperator" ' \
-                     f'parameter="@test" ' \
-                     f'weight="1.0" ' \
-                     f'scaleFactor="0.5">' \
-                     f'</operator>'
+    assert op.xml == \
+        '<operator ' \
+        'id="test" ' \
+        'spec="ScaleOperator" ' \
+        'parameter="@test" ' \
+        'weight="1.0" ' \
+        'scaleFactor="0.5">' \
+        '</operator>'
 
 
 def test_integer_random_walk_operator_create_success():
@@ -51,13 +53,14 @@ def test_integer_random_walk_operator_create_success():
         id="test",
         parameter="@test"
     )
-    assert op.xml == f'<operator ' \
-                     f'id="test" ' \
-                     f'spec="IntRandomWalkOperator" ' \
-                     f'parameter="@test" ' \
-                     f'weight="10.0" ' \
-                     f'windowSize="1">' \
-                     f'</operator>'
+    assert op.xml == \
+        '<operator ' \
+        'id="test" ' \
+        'spec="IntRandomWalkOperator" ' \
+        'parameter="@test" ' \
+        'weight="10.0" ' \
+        'windowSize="1">' \
+        '</operator>'
 
 
 def test_swap_operator_create_success():
@@ -70,12 +73,13 @@ def test_swap_operator_create_success():
         id="test",
         parameter="@test"
     )
-    assert op.xml == f'<operator ' \
-                     f'id="test" ' \
-                     f'spec="SwapOperator" ' \
-                     f'intparameter="@test" ' \
-                     f'weight="10.0">' \
-                     f'</operator>'
+    assert op.xml == \
+        '<operator ' \
+        'id="test" ' \
+        'spec="SwapOperator" ' \
+        'intparameter="@test" ' \
+        'weight="10.0">' \
+        '</operator>'
 
 
 def test_uniform_operator_create_success():
@@ -88,12 +92,13 @@ def test_uniform_operator_create_success():
         id="test",
         parameter="@test"
     )
-    assert op.xml == f'<operator ' \
-                     f'id="test" ' \
-                     f'spec="UniformOperator" ' \
-                     f'parameter="@test" ' \
-                     f'weight="10.0">' \
-                     f'</operator>'
+    assert op.xml == \
+        '<operator ' \
+        'id="test" ' \
+        'spec="UniformOperator" ' \
+        'parameter="@test" ' \
+        'weight="10.0">' \
+        '</operator>'
 
 
 def test_up_down_operator_create_success():
@@ -107,12 +112,13 @@ def test_up_down_operator_create_success():
         up_parameter="@test",
         down_parameter="@tree"
     )
-    assert op.xml == f'<operator ' \
-                     f'id="test" ' \
-                     f'spec="UpDownOperator" ' \
-                     f'weight="3.0" ' \
-                     f'scaleFactor="0.75">'\
-                     f'<up idref="@test" />'\
-                     f'<down idref="@tree" />'\
-                     f'</operator>'
+    assert op.xml == \
+        '<operator ' \
+        'id="test" ' \
+        'spec="UpDownOperator" ' \
+        'weight="3.0" ' \
+        'scaleFactor="0.75">'\
+        '<up idref="@test" />'\
+        '<down idref="@tree" />'\
+        '</operator>'
 

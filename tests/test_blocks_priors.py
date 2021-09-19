@@ -125,7 +125,8 @@ def test_prior_create_sliced_success():
 
     # Multiple priors for slices, get slice XMLs
     for i, distribution in enumerate(prior.distribution):
-        true_prior_xml = f'<Prior ' \
+        true_prior_xml = \
+            f'<Prior ' \
             f'id="{prior.id}Slice{i+1}" ' \
             f'name="distribution" ' \
             f'x="@{prior.id}{i+1}">' \
@@ -133,7 +134,8 @@ def test_prior_create_sliced_success():
             f'</Prior>'
         assert true_prior_xml in prior.xml
         assert true_prior_xml in prior.xml_prior
-        true_slice_func_xml = f'<function ' \
+        true_slice_func_xml = \
+            f'<function ' \
             f'spec="beast.core.util.Slice" ' \
             f'id="{prior.id}{i+1}" ' \
             f'arg="@{prior.id}" ' \
@@ -306,7 +308,8 @@ def test_prior_subclass_create_success():
     assert sp_mtbd.id == "samplingProportion"
     assert ps_coal.id == "bGroupSizes"
     assert ps_coal.param_spec == "parameter.IntegerParameter"
-    assert ps_coal.state_node_group_size == f'<stateNode ' \
+    assert ps_coal.state_node_group_size == \
+        f'<stateNode ' \
         f'id="bGroupSizes" ' \
         f'spec="parameter.IntegerParameter" ' \
         f'dimension="{ps_coal.dimension}">' \
@@ -316,11 +319,13 @@ def test_prior_subclass_create_success():
 
     # Multi type birth death XML components
     _incl = sp_mtbd.get_include_string()
-    _dist = f'<distribution ' \
+    _dist = \
+        f'<distribution ' \
         f'id="{sp_mtbd.id}Prior" ' \
         f'spec="multitypetree.distributions.ExcludablePrior" ' \
         f'x="@{sp_mtbd.id}">'
-    _xinclude = f'<xInclude id="samplingProportionXInclude" ' \
+    _xinclude = \
+        f'<xInclude id="samplingProportionXInclude" ' \
         f'spec="parameter.BooleanParameter" ' \
         f'dimension="{sp_mtbd.dimension}">' \
         f'{_incl}' \
@@ -336,7 +341,8 @@ def test_mtbd_prior_xml_success():
     exp = Exponential(mean=1.0)
     mtbd = SamplingProportionMultiTypePrior(initial=[1.0, 0., 1.0], distribution=[exp])
 
-    assert mtbd.xml == f'<distribution ' \
+    assert mtbd.xml == \
+        f'<distribution ' \
         f'id="samplingProportionPrior" ' \
         f'spec="multitypetree.distributions.ExcludablePrior" ' \
         f'x="@samplingProportion">' \

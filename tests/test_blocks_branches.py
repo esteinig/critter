@@ -15,11 +15,12 @@ def test_branch_rate_model_create_success():
         spec='test',
         parameter="@test"
     )
+    # note space after clock.rate
     assert brm.xml == '<branchRateModel ' \
-                      'id="test" ' \
-                      'spec="test" ' \
-                      'clock.rate="@test" >' \
-                      '</branchRateModel>'
+        'id="test" ' \
+        'spec="test" ' \
+        'clock.rate="@test" >' \
+        '</branchRateModel>'
     assert str(brm) == brm.xml
 
     # Default base class without a distribution
@@ -30,11 +31,12 @@ def test_branch_rate_model_create_success():
         tree_parameter="@tree",
         rate_categories_parameter="@"
     )
+    # note space after clock.rate
     assert brm.xml == '<branchRateModel ' \
-                      'id="test" ' \
-                      'spec="test" ' \
-                      'clock.rate="@test" >' \
-                      '</branchRateModel>'
+        'id="test" ' \
+        'spec="test" ' \
+        'clock.rate="@test" >' \
+        '</branchRateModel>'
 
     # Default base class with distribution
     exp = Exponential(mean=1.0)
@@ -47,12 +49,12 @@ def test_branch_rate_model_create_success():
         rate_categories_parameter="@rateCategories"
     )
     assert brm.xml == '<branchRateModel ' \
-                      'id="test" ' \
-                      'spec="test" ' \
-                      'clock.rate="@test" ' \
-                      f'rateCategories="@rateCategories" ' \
-                      f'tree="@tree">' \
-                      f'{exp.xml}' \
-                      f'</branchRateModel>'
+        'id="test" ' \
+        'spec="test" ' \
+        'clock.rate="@test" ' \
+        'rateCategories="@rateCategories" ' \
+        'tree="@tree">' \
+        f'{exp.xml}' \
+        '</branchRateModel>'
 
 

@@ -111,15 +111,16 @@ def test_real_parameter_default_xml_string():
             value=1.0
         )
     )
-    valid_xml = f'<parameter ' \
-                f'id="test" ' \
-                f'spec="parameter.RealParameter" ' \
-                f'estimate="false" ' \
-                f'lower="-inf" ' \
-                f'upper="inf" ' \
-                f'name="alpha">' \
-                f'1.0' \
-                f'</parameter>'
+    valid_xml = \
+        '<parameter ' \
+        'id="test" ' \
+        'spec="parameter.RealParameter" ' \
+        'estimate="false" ' \
+        'lower="-inf" ' \
+        'upper="inf" ' \
+        'name="alpha">' \
+        '1.0' \
+        '</parameter>'
     assert xml == valid_xml
 
 

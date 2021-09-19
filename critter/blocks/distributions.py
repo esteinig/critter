@@ -8,7 +8,7 @@ from typing import List
 
 class Distribution(BaseModel, extra=Extra.allow):
     """ Distribution base class """
-    id: str = f'Distribution.{get_uuid(short=True)}'
+    id: str = f'Distribution.{get_uuid(short=False)}'
     # parameters defined in subclasses as RealParameters
     # this lets users config the parameter block id
     params: List[RealParameter] = list()
@@ -44,7 +44,7 @@ class Distribution(BaseModel, extra=Extra.allow):
 # PATTERN: DISTRIBUTION WITH PARAMS
 class LogNormal(Distribution):
     # Distribution specific configs (passed on to Distribution)
-    id: str = f"LogNormal.{get_uuid(short=True)}"
+    id: str = f"LogNormal.{get_uuid(short=False)}"
     sd_parameter: str = None  # used in branchRateModel LogNormal with @
     real_space: bool = False
 
@@ -53,8 +53,8 @@ class LogNormal(Distribution):
         self,
         mean: float = None,
         sd: float = None,
-        mean_id: str = f'RealParameter.{get_uuid(short=True)}',
-        sd_id: str = f'RealParameter.{get_uuid(short=True)}',
+        mean_id: str = f'RealParameter.{get_uuid(short=False)}',
+        sd_id: str = f'RealParameter.{get_uuid(short=False)}',
         **distr_config  # passing on distribution config fields
     ):
         super().__init__(**distr_config)
@@ -84,16 +84,16 @@ class LogNormal(Distribution):
 
 # PATTERN: DISTRIBUTION WITHOUT PARAMS
 class Uniform(Distribution):
-    id: str = f"Uniform.{get_uuid(short=True)}"
+    id: str = f"Uniform.{get_uuid(short=False)}"
 
 
 class Exponential(Distribution):
-    id: str = f"Exponential.{get_uuid(short=True)}"
+    id: str = f"Exponential.{get_uuid(short=False)}"
 
     def __init__(
         self,
         mean: float,
-        mean_id: str = f'RealParameter.{get_uuid(short=True)}',
+        mean_id: str = f'RealParameter.{get_uuid(short=False)}',
         **distr_config
     ):
         super().__init__(**distr_config)
@@ -109,14 +109,14 @@ class Exponential(Distribution):
 
 
 class Beta(Distribution):
-    id: str = f"Beta.{get_uuid(short=True)}"
+    id: str = f"Beta.{get_uuid(short=False)}"
 
     def __init__(
         self,
         alpha: float,
         beta: float,
-        alpha_id: str = f'RealParameter.{get_uuid(short=True)}',
-        beta_id: str = f'RealParameter.{get_uuid(short=True)}',
+        alpha_id: str = f'RealParameter.{get_uuid(short=False)}',
+        beta_id: str = f'RealParameter.{get_uuid(short=False)}',
         **distr_config
     ):
         super().__init__(**distr_config)
@@ -139,15 +139,15 @@ class Beta(Distribution):
 
 
 class Gamma(Distribution):
-    id: str = f"Gamma.{get_uuid(short=True)}"
+    id: str = f"Gamma.{get_uuid(short=False)}"
     mode: str = "ShapeMean"
 
     def __init__(
         self,
         alpha: float,
         beta: float,
-        alpha_id: str = f'RealParameter.{get_uuid(short=True)}',
-        beta_id: str = f'RealParameter.{get_uuid(short=True)}',
+        alpha_id: str = f'RealParameter.{get_uuid(short=False)}',
+        beta_id: str = f'RealParameter.{get_uuid(short=False)}',
         **distr_config
     ):
         super().__init__(**distr_config)

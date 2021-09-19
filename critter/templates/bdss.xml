@@ -29,7 +29,6 @@
 
     <!--RUN BLOCK WITH MARKOV CHAIN AND MODEL PARAMETERS-->
     {{ mcmc_xml }}
-    <run>
         <!--STATE BLOCK FOR INITIAL PARAMETERS - POSTERIOR EVERY USED FOR STATE STORE-->
         <state id="state" spec="State" storeEvery="{{ posterior_every }}">
             <!--TREE BLOCK WITH DATES LINKING TO ALIGNMENT-->

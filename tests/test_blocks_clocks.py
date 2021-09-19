@@ -127,12 +127,12 @@ def test_clock_ucre_create_success():
         prior=[ucre_prior]
     )
     assert ucre_clock.xml_state_node == \
-        f'<stateNode ' \
-        f'id="ucreRateCategories" ' \
-        f'spec="parameter.IntegerParameter" ' \
-        f'dimension="718">' \
-        f'1' \
-        f'</stateNode>'
+        '<stateNode ' \
+        'id="ucreRateCategories" ' \
+        'spec="parameter.IntegerParameter" ' \
+        'dimension="718">' \
+        '1' \
+        '</stateNode>'
     assert ucre_clock.xml_branch_rate_model == UCREBranchRateModel(
         id="ucreBranchRateModel",
         parameter="@ucreMean",
@@ -192,12 +192,12 @@ def test_clock_ucrl_create_success():
         prior=[ucrl_mean_prior, ucrl_sd_prior]
     )
     assert ucrl_clock.xml_state_node == \
-        f'<stateNode ' \
-        f'id="ucrlRateCategories" ' \
-        f'spec="parameter.IntegerParameter" ' \
-        f'dimension="718">' \
-        f'1' \
-        f'</stateNode>'
+        '<stateNode ' \
+        'id="ucrlRateCategories" ' \
+        'spec="parameter.IntegerParameter" ' \
+        'dimension="718">' \
+        '1' \
+        '</stateNode>'
     assert ucrl_clock.xml_branch_rate_model == UCRLBranchRateModel(
         id="ucrlBranchRateModel",
         parameter="@ucrlMean",
