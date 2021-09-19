@@ -1,6 +1,6 @@
 from math import inf as infinity
 from pydantic import BaseModel, validator
-from pydantic.error_wrappers import ValidationError
+from pydantic.errors import PydanticValueError
 
 
 class Parameter(BaseModel):
@@ -19,11 +19,21 @@ class Parameter(BaseModel):
 
     @property
     def xml(self) -> str:
+        
+        if self.lower == -infinity:
+            lower = "-Infinity"
+        else:
+            lower = f"{self.lower}"
+        if self.upper == infinity:
+            upper = "Infinity"
+        else:
+            upper = f"{self.upper}"
+
         return f'<parameter id="{self.id}" ' \
                f'spec="{self.spec}" ' \
                f'estimate="{str(self.estimate).lower()}" ' \
-               f'lower="{str(self.lower)}" ' \
-               f'upper="{str(self.upper)}" ' \
+               f'lower="{lower}" ' \
+               f'upper="{upper}" ' \
                f'name="{self.name}">{self.value}' \
                f'</parameter>'
 
@@ -33,7 +43,19 @@ class Parameter(BaseModel):
             for s in v.split(' '):
                 float(s) 
         except ValueError:
-            raise ValidationError('If parameter value is a string, its split components must be convertable to float')
+            raise PydanticValueError('If parameter value is a string, its split components must be convertable to float')
+        return v
+
+    @validator('lower')
+    def validate_lower_bound_is_not_positive_infinity(cls, v):
+        if v == infinity:
+            raise PydanticValueError("Lower parameter value should not be +infinity")
+        return v
+
+    @validator('upper')
+    def validate_upper_bound_is_not_negative_infinity(cls, v):
+        if v == -infinity:
+            raise PydanticValueError("Upper parameter value should not be -infinity")
         return v
 
 class RealParameter(Parameter):

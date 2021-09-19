@@ -2,8 +2,8 @@ from pytest import raises
 
 from math import inf as infinity
 from pydantic import ValidationError
+from critter.errors import CritterError
 from critter.blocks.parameters import RealParameter
-
 
 def test_real_parameter_create_success():
     """
@@ -116,8 +116,8 @@ def test_real_parameter_default_xml_string():
         'id="test" ' \
         'spec="parameter.RealParameter" ' \
         'estimate="false" ' \
-        'lower="-inf" ' \
-        'upper="inf" ' \
+        'lower="-Infinity" ' \
+        'upper="Infinity" ' \
         'name="alpha">' \
         '1.0' \
         '</parameter>'
@@ -180,3 +180,42 @@ def test_real_parameter_string_value_validation_failure():
             name="alpha",
             value="10 test"
         )
+
+def test_real_parameter_infinity_xml():
+    """
+    GIVEN: RealParameter with valid name and infinity
+        lower or upper bounds
+    WHEN:  RealParameter instance xml is created
+    THEN:  RealParameter instance xml is created 
+        or raises CritterError
+    """
+
+    RealParameter(
+        id='test',
+        name="alpha",
+        value="1.0",
+        lower=-infinity
+    ).xml
+
+    RealParameter(
+        id='test',
+        name="alpha",
+        value="1.0",
+        upper=infinity
+    ).xml
+
+    with raises(ValidationError):
+        RealParameter(
+            id='test',
+            name="alpha",
+            value="1.0",
+            lower=infinity
+        )
+    with raises(ValidationError):
+        RealParameter(
+            id='test',
+            name="alpha",
+            value="1.0",
+            upper=-infinity
+        )
+
