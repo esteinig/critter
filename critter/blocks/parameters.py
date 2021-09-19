@@ -1,12 +1,11 @@
 from math import inf as infinity
-from typing import Type
 from pydantic import BaseModel, validator
 from pydantic.error_wrappers import ValidationError
 
 
 class Parameter(BaseModel):
     """ <parameter/> """
-    id: str
+    id: str 
     name: str
     value: str  # allows multiple values for sliced configs [1.0 2.0]
     lower: float = -infinity

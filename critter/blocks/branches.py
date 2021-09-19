@@ -62,7 +62,7 @@ class UCRLBranchRateModel(BranchRateModel):
         real_space=True,
         params=[
             RealParameter(
-                id=f"RealParameter.{get_uuid(short=True)}",
+                id=f"RealParameter.{get_uuid(short=False)}",
                 name="M",
                 value=1.0,
                 lower=0.,

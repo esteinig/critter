@@ -1,32 +1,33 @@
 """ Distribution models """
 
-from pydantic import BaseModel, Extra
 from critter.blocks.parameters import RealParameter
 from critter.utils import get_uuid
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel, PrivateAttr
 
+class Distribution(BaseModel):
+    _id: str = PrivateAttr()
+    _params: List[RealParameter] = PrivateAttr(default=[])
+    _attr_name: dict = PrivateAttr(
+        default={
+            'real_space': 'meanInRealSpace',
+            'mode': 'mode',
+            'sd_parameter': 'S'   # used in branchRateParameter LogNormal with @
+        }
+    )
 
-class Distribution(BaseModel, extra=Extra.allow):
-    """ Distribution base class """
-    id: str = f'Distribution.{get_uuid(short=False)}'
-    # parameters defined in subclasses as RealParameters
-    # this lets users config the parameter block id
-    params: List[RealParameter] = list()
-    # optional sub model pythonic attributes -> original name
-    _attr_name = {
-        'real_space': 'meanInRealSpace',
-        'mode': 'mode',
-        'sd_parameter': 'S'   # used in branchRateParameter LogNormal with @
-    }
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._id: str = f'Distribution.{get_uuid(short=False)}'
 
     def __str__(self):
         return self.xml
 
     @property
     def xml(self):
-        _param_block = "".join([str(param) for param in self.params])
+        _param_block = "".join([str(param) for param in self._params])
         return f'<{self.__class__.__name__} ' \
-               f'id="{self.id}" ' \
+               f'id="{self._id}" ' \
                f'{self._get_distr_config()} ' \
                f'name="distr">' \
                f'{_param_block}' \
@@ -41,130 +42,118 @@ class Distribution(BaseModel, extra=Extra.allow):
         ])
 
 
-# PATTERN: DISTRIBUTION WITH PARAMS
 class LogNormal(Distribution):
-    # Distribution specific configs (passed on to Distribution)
-    id: str = f"LogNormal.{get_uuid(short=False)}"
-    sd_parameter: str = None  # used in branchRateModel LogNormal with @
-    real_space: bool = False
+    mean: Optional[float] = ...  # required but can take None
+    sd: Optional[float]  = ...
 
-    # RealParameter specific configs (params init on distribution init)
-    def __init__(
-        self,
-        mean: float = None,
-        sd: float = None,
-        mean_id: str = f'RealParameter.{get_uuid(short=False)}',
-        sd_id: str = f'RealParameter.{get_uuid(short=False)}',
-        **distr_config  # passing on distribution config fields
-    ):
-        super().__init__(**distr_config)
-        # Define the parameter attributes here for external / testing access
-        self.mean = mean
-        self.sd = sd
-        self.mean_id = mean_id
-        self.sd_id = sd_id
+    sd_parameter: Optional[str] = None  # used in branchRateModel LogNormal with @
+    real_space: Optional[bool] = False
+
+    _mean_id: str = PrivateAttr()
+    _sd_id: str = PrivateAttr()
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._id: str = f"LogNormal.{get_uuid(short=False)}"
+        self._mean_id = f'RealParameter.{get_uuid(short=False)}'
+        self._sd_id = f'RealParameter.{get_uuid(short=False)}'       
 
         if self.mean is not None:
-            self.params.append(
+            self._params.append(
                 RealParameter(
-                    id=mean_id,
+                    id=self._mean_id,
                     name="M",
-                    value=mean
+                    value=self.mean
                 )
             )
         if self.sd is not None:  # SD in branchRateParameter part of main parameters
-            self.params.append(
+            self._params.append(
                 RealParameter(
-                    id=sd_id,
+                    id=self._sd_id,
                     name="S",
-                    value=sd
+                    value=self.sd
                 )
             )
 
-
-# PATTERN: DISTRIBUTION WITHOUT PARAMS
 class Uniform(Distribution):
-    id: str = f"Uniform.{get_uuid(short=False)}"
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._id: str = f"Uniform.{get_uuid(short=False)}"
 
 
 class Exponential(Distribution):
-    id: str = f"Exponential.{get_uuid(short=False)}"
+    mean: float
 
-    def __init__(
-        self,
-        mean: float,
-        mean_id: str = f'RealParameter.{get_uuid(short=False)}',
-        **distr_config
-    ):
-        super().__init__(**distr_config)
-        self.mean = mean
-        self.mean_id = mean_id
-        self.params: List[RealParameter] = [
+    _mean_id: str = PrivateAttr()
+
+    def __init__(self, **data):
+        super().__init__(**data)
+
+        self._id: str = f"Exponential.{get_uuid(short=False)}"
+        self._mean_id = f'RealParameter.{get_uuid(short=False)}'
+
+        self._params: List[RealParameter] = [
             RealParameter(
-                id=mean_id,
+                id=self._mean_id,
                 name="mean",
-                value=mean
+                value=self.mean
             )
         ]
 
 
 class Beta(Distribution):
-    id: str = f"Beta.{get_uuid(short=False)}"
+    alpha: float
+    beta: float
 
-    def __init__(
-        self,
-        alpha: float,
-        beta: float,
-        alpha_id: str = f'RealParameter.{get_uuid(short=False)}',
-        beta_id: str = f'RealParameter.{get_uuid(short=False)}',
-        **distr_config
-    ):
-        super().__init__(**distr_config)
-        self.alpha = alpha
-        self.beta = beta
-        self.alpha_id = alpha_id
-        self.beta_id = beta_id
-        self.params: List[RealParameter] = [
+    _alpha_id: str = PrivateAttr()
+    _beta_id: str = PrivateAttr()
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._id: str = f"Beta.{get_uuid(short=False)}"
+        self._alpha_id = f'RealParameter.{get_uuid(short=False)}'
+        self._beta_id = f'RealParameter.{get_uuid(short=False)}'
+
+        self._params: List[RealParameter] = [
             RealParameter(
-                id=alpha_id,
+                id=self._alpha_id,
                 name="alpha",
-                value=alpha
+                value=self.alpha
             ),
             RealParameter(
-                id=beta_id,
+                id=self._beta_id,
                 name="beta",
-                value=beta
+                value=self.beta
             ),
         ]
 
 
 class Gamma(Distribution):
-    id: str = f"Gamma.{get_uuid(short=False)}"
-    mode: str = "ShapeMean"
+    alpha: float
+    beta: float
+    mode: Optional[str] = "ShapeMean"
+    
+    _alpha_id: str = PrivateAttr()
+    _beta_id: str = PrivateAttr()
 
-    def __init__(
-        self,
-        alpha: float,
-        beta: float,
-        alpha_id: str = f'RealParameter.{get_uuid(short=False)}',
-        beta_id: str = f'RealParameter.{get_uuid(short=False)}',
-        **distr_config
-    ):
-        super().__init__(**distr_config)
-        self.alpha = alpha
-        self.beta = beta
-        self.alpha_id = alpha_id
-        self.beta_id = beta_id
-        self.params: List[RealParameter] = [
+    def __init__(self, **data):
+        super().__init__(**data)
+
+        self._id: str = f"Gamma.{get_uuid(short=False)}"
+        self._alpha_id = f'RealParameter.{get_uuid(short=False)}'
+        self._beta_id = f'RealParameter.{get_uuid(short=False)}'
+
+        self._params: List[RealParameter] = [
             RealParameter(
-                id=alpha_id,
+                id=self._alpha_id,
                 name="alpha",
-                value=alpha
+                value=self.alpha
             ),
             RealParameter(
-                id=beta_id,
+                id=self._beta_id,
                 name="beta",
-                value=beta
+                value=self.beta
             ),
         ]
 

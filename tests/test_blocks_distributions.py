@@ -7,37 +7,48 @@ from critter.blocks.distributions import Beta
 from critter.blocks.distributions import LogNormal
 
 
-def test_base_distribution_create_success():
+def test_distribution_create_unique_success():
     """
-    GIVEN: Distribution with valid name or parameters
+    GIVEN: Distribution instance with deafult parameters
     WHEN:  Distribution instance is created
-    THEN:  Distribution instance is created with valid defaults
+    THEN:  Distribution instance is created with unique identifiers
     """
-    no_param_distr = Distribution(
-        id="Base"
-    )
-    assert no_param_distr.id == "Base"
-    assert no_param_distr.params == list()
-    assert type(no_param_distr.id) == str
-    # Multiple param distribution
-    param1 = RealParameter(
-        id="test1",
-        name="alpha",
-        value=2.0
-    )
-    param2 = RealParameter(
-        id="test2",
-        name="beta",
-        value=2.0
-    )
-    param_distr = Distribution(
-        id="Base"
-    )
-    param_distr.params = [param1, param2]
-    assert param_distr.params == [param1, param2]
-    assert type(param_distr.params[0]) == RealParameter
-    assert type(param_distr.params[1]) == RealParameter
+    distr1, distr2 = Distribution(), Distribution()
 
+    uni1, uni2 = Uniform(), Uniform()
+    exp1, exp2 = Exponential(
+        mean=1.0
+    ), Exponential(
+        mean=1.0
+    )
+    gam1, gam2 = Gamma(
+        alpha=1.0,
+        beta=1.0
+    ), Gamma(
+        alpha=1.0,
+        beta=1.0
+    )
+    bet1, bet2 = Beta(
+        alpha=1.0, 
+        beta=1.0
+    ), Beta(
+        alpha=1.0, 
+        beta=1.0
+    )
+    lgn1, lgn2 = LogNormal(
+        mean=1.0, 
+        sd=1.0
+    ), LogNormal(
+        mean=1.0, 
+        sd=1.0
+    )
+
+    assert distr1._id != distr2._id
+    assert uni1._id != uni2._id
+    assert exp1._id != exp2._id
+    assert gam1._id != gam2._id
+    assert bet1._id != bet2._id
+    assert lgn1._id != lgn2._id
 
 def test_base_distribution_attr_config_complete():
     """
@@ -45,9 +56,7 @@ def test_base_distribution_attr_config_complete():
     WHEN:   Distribution instance has been created
     THEN:   Distribution instance config is complete
     """
-    distr = Distribution(
-        id="Base"
-    )
+    distr = Distribution()
     for key, value in {
         'mode': 'mode',
         'real_space': 'meanInRealSpace',
@@ -63,87 +72,8 @@ def test_base_distribution_attr_config_string():
     WHEN:   Distribution instance calls _get_distr_config
     THEN:   Distribution instance returns empty config string
     """
-    distr = Distribution(
-        id="Base"
-    )
+    distr = Distribution()
     assert distr._get_distr_config() == ""
-
-
-def test_base_distribution_default_xml_string():
-    """
-    GIVEN: Distribution with valid name
-    WHEN:  Distribution instance calls __str__
-    THEN:  Distribution instance returns valid XML string
-    """
-    xml = str(Distribution(
-        id="Gamma"
-    ))
-    no_param_xml = \
-        '<Distribution ' \
-        'id="Gamma"  ' \
-        'name="distr">' \
-        '</Distribution>'  # space!
-    assert xml == no_param_xml
-    # Multiple parameter XML distribution string
-    param1 = RealParameter(
-        id='test1',
-        name="alpha",
-        value=2.0
-    )
-    param2 = RealParameter(
-        id='test2',
-        name="beta",
-        value=2.0
-    )
-    xml = Distribution(
-        id="Base"
-    )
-    xml.params = [param1, param2]
-    param_xml = \
-        f'<Distribution ' \
-        f'id="Base"  ' \
-        f'name="distr">' \
-        f'{str(param1)}' \
-        f'{str(param2)}' \
-        f'</Distribution>'  # space!
-    assert str(xml) == param_xml
-
-
-def test_distributions_create_id_success():
-    """
-    GIVEN: Distribution subclass with valid ID
-    WHEN:  Distribution subclass instance is created
-    THEN:  Distribution subclass instance is created with valid ID
-    """
-    uni = Uniform(
-        id='test'
-    )
-    exp = Exponential(
-        id='test',
-        mean=1.0
-    )
-    beta = Beta(
-        id='test',
-        alpha=1.0,
-        beta=0.5
-    )
-    gamma = Gamma(
-        id='test',
-        alpha=1.0,
-        beta=0.5
-    )
-    lgn = LogNormal(
-        id='test',
-        mean=1.0,
-        sd=2.0,
-        real_space=True
-    )
-
-    assert str(uni).startswith('<Uniform id="test" ')
-    assert str(exp).startswith('<Exponential id="test" ')
-    assert str(beta).startswith('<Beta id="test" ')
-    assert str(gamma).startswith('<Gamma id="test" ')
-    assert str(lgn).startswith('<LogNormal id="test" ')
 
 
 def test_distributions_create_param_success():
@@ -152,23 +82,21 @@ def test_distributions_create_param_success():
     WHEN:  Distribution subclass instance is created
     THEN:  Distribution subclass instance string contains the correct RealParameter string
     """
-    # Uniform has no params, default param identifiers generated with UUID (e.g. exp.mean_id)
+
+    uni = Uniform()
+
     exp = Exponential(
-        id='test',
         mean=1.0
     )
     beta = Beta(
-        id='test',
         alpha=1.0,
         beta=0.5
     )
     gamma = Gamma(
-        id='test',
         alpha=1.0,
         beta=0.5
     )
     lgn = LogNormal(
-        id='test',
         mean=1.0,
         sd=2.0,
         real_space=True
@@ -177,53 +105,54 @@ def test_distributions_create_param_success():
     mean_param_exp = str(
         RealParameter(
             name='mean',
-            id=exp.mean_id,
+            id=exp._mean_id,
             value=exp.mean
         )
     )
     alpha_param_beta = str(
         RealParameter(
             name='alpha',
-            id=beta.alpha_id,
+            id=beta._alpha_id,
             value=beta.alpha
         )
     )
     alpha_param_gamma = str(
         RealParameter(
             name='alpha',
-            id=gamma.alpha_id,
+            id=gamma._alpha_id,
             value=gamma.alpha
         )
     )
     beta_param_beta = str(
         RealParameter(
             name='beta',
-            id=beta.beta_id,
+            id=beta._beta_id,
             value=beta.beta
         )
     )
     beta_param_gamma = str(
         RealParameter(
             name='beta',
-            id=gamma.beta_id,
+            id=gamma._beta_id,
             value=gamma.beta
         )
     )
     mean_param_lgn = str(
         RealParameter(
             name='M',
-            id=lgn.mean_id,
+            id=lgn._mean_id,
             value=lgn.mean
         )
     )
     sd_param_lgn = str(
         RealParameter(
             name='S',
-            id=lgn.sd_id,
+            id=lgn._sd_id,
             value=lgn.sd
         )
     )
 
+    assert uni._params == []
     assert mean_param_exp in str(exp)
     assert mean_param_lgn in str(lgn)
     assert sd_param_lgn in str(lgn)
@@ -244,24 +173,18 @@ def test_distributions_lognormal_none_success():
     # inside the distribution main parameter definitions (HTML)
     
     lgn1 = LogNormal(
-        id='test',
         mean=None,
-        sd=2.0,
-        real_space=True
+        sd=2.0
     )
     lgn2 = LogNormal(
-        id='test',
         mean=1.0,
-        sd=None,
-        real_space=True
+        sd=None
     )
     lgn3 = LogNormal(
-        id='test',
         mean=None,
-        sd=None,
-        real_space=True
+        sd=None
     )
 
-    assert len(lgn1.params) == 1
-    assert len(lgn2.params) == 1
-    assert len(lgn3.params) == 0
+    assert len(lgn1._params) == 1
+    assert len(lgn2._params) == 1
+    assert len(lgn3._params) == 0
