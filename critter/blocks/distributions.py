@@ -38,7 +38,7 @@ class Distribution(BaseModel):
         return ' '.join([
             f'{self._attr_name[attr]}="{value}"'
             for attr, value in vars(self).items()
-            if attr in self._attr_name.keys() and attr is not None
+            if value is not None and attr in self._attr_name.keys()
         ])
 
 
@@ -46,7 +46,7 @@ class LogNormal(Distribution):
     mean: Optional[float] = ...  # required but can take None
     sd: Optional[float]  = ...
 
-    sd_parameter: Optional[str] = None  # used in branchRateModel LogNormal with @
+    sd_parameter: Optional[str] # used in branchRateModel LogNormal with @
     real_space: Optional[bool] = False
 
     _mean_id: str = PrivateAttr()
@@ -125,7 +125,7 @@ class Beta(Distribution):
                 id=self._beta_id,
                 name="beta",
                 value=self.beta
-            ),
+            )
         ]
 
 
@@ -154,7 +154,7 @@ class Gamma(Distribution):
                 id=self._beta_id,
                 name="beta",
                 value=self.beta
-            ),
+            )
         ]
 
 

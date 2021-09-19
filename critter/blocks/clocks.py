@@ -89,8 +89,8 @@ class StrictClock(Clock):
         else:
             return UpDownOperator(
                 id="strictClockUpDownOperator",
-                up_parameter="@clockRate",
-                down_parameter="@Tree"
+                up_idref="clockRate",  # idref no @
+                down_idref="Tree"  # idref no @
             ).xml
 
 
@@ -147,8 +147,8 @@ class UCREClock(Clock):
         else:
             return UpDownOperator(
                 id="ucreMeanUpDownOperator",
-                up_parameter="@ucreMean",
-                down_parameter="@Tree"
+                up_idref="ucreMean", # idref no @
+                down_idref="Tree" # idref no @
             ).xml
 
 
@@ -210,6 +210,6 @@ class UCRLClock(Clock):
         else:
             return UpDownOperator(
                 id="ucrlMeanUpDownOperator",
-                up_parameter="@ucrlMean",
-                down_parameter="@Tree"
+                up_idref="ucrlMean", # idref no @
+                down_idref="Tree" # idref no @
             ).xml

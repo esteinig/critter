@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--Packages: BDSKY, BEASTLab-->
 <beast
     beautitemplate='Standard'
     beautistatus=''
@@ -6,7 +7,6 @@
     required=""
     version="2.6"
 >
-
     <!--PRIOR XML MAPPINGS-->
     <map name="Uniform" >beast.math.distributions.Uniform</map>
     <map name="Exponential" >beast.math.distributions.Exponential</map>
@@ -18,15 +18,12 @@
     <map name="Prior" >beast.math.distributions.Prior</map>
     <map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
     <map name="OneOnX" >beast.math.distributions.OneOnX</map>
-
     <!--SEQUENCE ALIGNMENT-->
     <data id="Alignment" spec="Alignment" name="alignment">
         {{ data_xml }}
     </data>
-
     <!--SLICE FUNCTIONS-->
     {{ slice_functions }}
-
     <!--RUN BLOCK WITH MARKOV CHAIN AND MODEL PARAMETERS-->
     {{ mcmc_xml }}
         <!--STATE BLOCK FOR INITIAL PARAMETERS - POSTERIOR EVERY USED FOR STATE STORE-->
@@ -73,53 +70,21 @@
                         id="BDSKY_Serial"
                         spec="beast.evolution.speciation.BirthDeathSkylineModel"
                         becomeUninfectiousRate="@becomeUninfectiousRate"
-                        origin="@originPrior"
+                        origin="@origin"
                         reproductiveNumber="@reproductiveNumber"
                         samplingProportion="@samplingProportion"
                         tree="@Tree"
                     >
                     {{ slice_rates }}
                     </distribution>
-
                     <!--SUBSTITUTION MODEL PRIOR BLOCK-->
-                    <Prior id="FrequenciesPrior" name="distribution" x="@freqParameter">
-                        <Uniform id="Uniform.3" name="distr"/>
-                    </Prior>
-                    <Prior id="GammaShapePrior" name="distribution" x="@gammaShape">
-                        <Exponential id="Exponential.0" name="distr">
-                            <parameter id="RealParameter.0" spec="parameter.RealParameter" estimate="false" name="mean">10.0</parameter>
-                        </Exponential>
-                    </Prior>
-                    <Prior id="RateACPrior" name="distribution" x="@rateAC">
-                        <Gamma id="Gamma.0" name="distr">
-                            <parameter id="RealParameter.1" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
-                            <parameter id="RealParameter.2" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter>
-                        </Gamma>
-                    </Prior>
-                    <Prior id="RateAGPrior" name="distribution" x="@rateAG">
-                        <Gamma id="Gamma.1" name="distr">
-                            <parameter id="RealParameter.3" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
-                            <parameter id="RealParameter.4" spec="parameter.RealParameter" estimate="false" name="beta">20.0</parameter>
-                        </Gamma>
-                    </Prior>
-                    <Prior id="RateATPrior" name="distribution" x="@rateAT">
-                        <Gamma id="Gamma.2" name="distr">
-                            <parameter id="RealParameter.5" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
-                            <parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter>
-                        </Gamma>
-                    </Prior>
-                    <Prior id="RateCGPrior" name="distribution" x="@rateCG">
-                        <Gamma id="Gamma.3" name="distr">
-                            <parameter id="RealParameter.7" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
-                            <parameter id="RealParameter.8" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter>
-                        </Gamma>
-                    </Prior>
-                    <Prior id="RateGTPrior" name="distribution" x="@rateGT">
-                        <Gamma id="Gamma.4" name="distr">
-                            <parameter id="RealParameter.11" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter>
-                            <parameter id="RealParameter.12" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter>
-                        </Gamma>
-                    </Prior>
+                    <Prior id="FrequenciesPrior" name="distribution" x="@freqParameter"><Uniform id="Uniform.3" name="distr"/></Prior>
+                    <Prior id="GammaShapePrior" name="distribution" x="@gammaShape"><Exponential id="Exponential.0" name="distr"><parameter id="RealParameter.0" spec="parameter.RealParameter" estimate="false" name="mean">10.0</parameter></Exponential></Prior>
+                    <Prior id="RateACPrior" name="distribution" x="@rateAC"><Gamma id="Gamma.0" name="distr"><parameter id="RealParameter.1" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter><parameter id="RealParameter.2" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter></Gamma></Prior>
+                    <Prior id="RateAGPrior" name="distribution" x="@rateAG"><Gamma id="Gamma.1" name="distr"><parameter id="RealParameter.3" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter><parameter id="RealParameter.4" spec="parameter.RealParameter" estimate="false" name="beta">20.0</parameter></Gamma></Prior>
+                    <Prior id="RateATPrior" name="distribution" x="@rateAT"><Gamma id="Gamma.2" name="distr"><parameter id="RealParameter.5" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter><parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter></Gamma></Prior>
+                    <Prior id="RateCGPrior" name="distribution" x="@rateCG"><Gamma id="Gamma.3" name="distr"><parameter id="RealParameter.7" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter><parameter id="RealParameter.8" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter></Gamma></Prior>
+                    <Prior id="RateGTPrior" name="distribution" x="@rateGT"><Gamma id="Gamma.4" name="distr"><parameter id="RealParameter.11" spec="parameter.RealParameter" estimate="false" name="alpha">0.05</parameter><parameter id="RealParameter.12" spec="parameter.RealParameter" estimate="false" name="beta">10.0</parameter></Gamma></Prior>
                     <!--MODEL AND CLOCK PRIOR BLOCK-->
                     {{ origin_prior }}
                     {{ reproductive_number_prior }}
@@ -144,7 +109,6 @@
                 </distribution>
             </distribution>
         </distribution>
-
         <!--OPERATOR BLOCK-->
         <operator id="FrequenciesExchanger" spec="DeltaExchangeOperator" delta="0.01" weight="0.1">
             <parameter idref="freqParameter"/>
@@ -170,12 +134,9 @@
             <up idref="reproductiveNumber"/>
             <down idref="becomeUninfectiousRate"/>
         </operator>
-
         {{ clock_scale_operator }}
         {{ clock_updown_operator }}
-
         <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
-
         <!--LOGGER BLOCK-->
         <logger id="tracelog" spec="Logger" fileName="{{ posterior_log }}" logEvery="{{ posterior_every }}" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
@@ -199,15 +160,7 @@
             {{ slice_loggers }}
         </logger>
         <!--POSTERIOR EVERY USED FOR SCREEN LOG-->
-        <logger id="screenlog" spec="Logger" fileName="" logEvery="{{ posterior_every }}">
-            <log idref="posterior"/>
-            <log idref="likelihood"/>
-            <log idref="prior"/>
-        </logger>
-
-        <logger id="treelog" spec="Logger" fileName="{{ tree_log }}" logEvery="{{ tree_every }}" mode="tree">
-            <log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree"/>
-        </logger>
-
+        <logger id="screenlog" spec="Logger" fileName="" logEvery="{{ posterior_every }}"><log idref="posterior"/><log idref="likelihood"/><log idref="prior"/></logger>
+        <logger id="treelog" spec="Logger" fileName="{{ tree_log }}" logEvery="{{ tree_every }}" mode="tree"><log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree"/></logger>
     </run>
 </beast>

@@ -99,8 +99,8 @@ def test_clock_strict_create_success():
     assert strict_clock.xml_updown_operator == UpDownOperator(
         id="strictClockUpDownOperator",
         parameter="@clockRate",
-        up_parameter="@clockRate",
-        down_parameter="@Tree"
+        up_idref="clockRate",
+        down_idref="Tree"
     ).xml
     # Strict clock fixed
     strict_clock_fixed = StrictClock(
@@ -160,8 +160,8 @@ def test_clock_ucre_create_success():
     ])
     assert ucre_clock.xml_updown_operator == UpDownOperator(
         id="ucreMeanUpDownOperator",
-        up_parameter="@ucreMean",
-        down_parameter="@Tree"
+        up_idref="ucreMean",
+        down_idref="Tree"
     ).xml
 
     ucre_clock_fixed = UCREClock(
@@ -230,8 +230,8 @@ def test_clock_ucrl_create_success():
     ])
     assert ucrl_clock.xml_updown_operator == UpDownOperator(
         id="ucrlMeanUpDownOperator",
-        up_parameter="@ucrlMean",
-        down_parameter="@Tree"
+        up_idref="ucrlMean",
+        down_idref="Tree"
     ).xml
 
     ucrl_clock_fixed = UCRLClock(

@@ -11,7 +11,7 @@ class Parameter(BaseModel):
     lower: float = -infinity
     upper: float = +infinity
     dimension: int = 1
-    estimate: bool = False
+    estimate: bool = True
     spec: str = "parameter.RealParameter"
 
     def __str__(self) -> str:

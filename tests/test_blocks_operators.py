@@ -109,8 +109,8 @@ def test_up_down_operator_create_success():
     """
     op = UpDownOperator(
         id="test",
-        up_parameter="@test",
-        down_parameter="@tree"
+        up_idref="test",
+        down_idref="tree"
     )
     assert op.xml == \
         '<operator ' \
@@ -118,7 +118,7 @@ def test_up_down_operator_create_success():
         'spec="UpDownOperator" ' \
         'weight="3.0" ' \
         'scaleFactor="0.75">'\
-        '<up idref="@test" />'\
-        '<down idref="@tree" />'\
+        '<up idref="test" />'\
+        '<down idref="tree" />'\
         '</operator>'
 

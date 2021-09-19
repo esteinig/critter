@@ -22,7 +22,7 @@ def test_real_parameter_create_success():
     assert param.lower == -infinity
     assert param.upper == infinity
     assert param.dimension == 1
-    assert param.estimate is False
+    assert param.estimate is True
     assert type(param.id) == str  # is uuid correctly returned as str
 
 
@@ -115,7 +115,7 @@ def test_real_parameter_default_xml_string():
         '<parameter ' \
         'id="test" ' \
         'spec="parameter.RealParameter" ' \
-        'estimate="false" ' \
+        'estimate="true" ' \
         'lower="-Infinity" ' \
         'upper="Infinity" ' \
         'name="alpha">' \

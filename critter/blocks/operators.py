@@ -83,8 +83,8 @@ class UniformOperator(Operator):
 
 class UpDownOperator(Operator):
     spec: str = "UpDownOperator"
-    up_parameter: str
-    down_parameter: str
+    up_idref: str
+    down_idref: str
     weight: float = 3.0
     scale_factor: float = 0.75
 
@@ -95,6 +95,6 @@ class UpDownOperator(Operator):
                f'spec="{self.spec}" ' \
                f'weight="{self.weight}" ' \
                f'scaleFactor="{self.scale_factor}">' \
-               f'<up idref="{self.up_parameter}" />' \
-               f'<down idref="{self.down_parameter}" />' \
+               f'<up idref="{self.up_idref}" />' \
+               f'<down idref="{self.down_idref}" />' \
                f'</operator>'
