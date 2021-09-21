@@ -101,54 +101,60 @@ def test_distributions_create_param_success():
         sd=2.0,
         real_space=True
     )
-    # RealParameter block strings using the random param identifiers from super class for validation
     mean_param_exp = str(
         RealParameter(
             name='mean',
             id=exp._mean_id,
-            value=exp.mean
+            value=exp.mean,
+            estimate=False  # Distribution parameters are not estimated
         )
     )
     alpha_param_beta = str(
         RealParameter(
             name='alpha',
             id=beta._alpha_id,
-            value=beta.alpha
+            value=beta.alpha,
+            estimate=False
         )
     )
     alpha_param_gamma = str(
         RealParameter(
             name='alpha',
             id=gamma._alpha_id,
-            value=gamma.alpha
+            value=gamma.alpha,
+            estimate=False
         )
     )
     beta_param_beta = str(
         RealParameter(
             name='beta',
             id=beta._beta_id,
-            value=beta.beta
+            value=beta.beta,
+            estimate=False
         )
     )
     beta_param_gamma = str(
         RealParameter(
             name='beta',
             id=gamma._beta_id,
-            value=gamma.beta
+            value=gamma.beta,
+            estimate=False
         )
     )
     mean_param_lgn = str(
         RealParameter(
             name='M',
             id=lgn._mean_id,
-            value=lgn.mean
+            value=lgn.mean,
+            estimate=False
         )
     )
     sd_param_lgn = str(
         RealParameter(
             name='S',
             id=lgn._sd_id,
-            value=lgn.sd
+            value=lgn.sd,
+            estimate=False
         )
     )
 

@@ -42,38 +42,6 @@ class Distribution(BaseModel):
         ])
 
 
-class LogNormal(Distribution):
-    mean: Optional[float] = ...  # required but can take None
-    sd: Optional[float]  = ...
-
-    sd_parameter: Optional[str] # used in branchRateModel LogNormal with @
-    real_space: Optional[bool] = False
-
-    _mean_id: str = PrivateAttr()
-    _sd_id: str = PrivateAttr()
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        self._id: str = f"LogNormal.{get_uuid(short=False)}"
-        self._mean_id = f'RealParameter.{get_uuid(short=False)}'
-        self._sd_id = f'RealParameter.{get_uuid(short=False)}'       
-
-        if self.mean is not None:
-            self._params.append(
-                RealParameter(
-                    id=self._mean_id,
-                    name="M",
-                    value=self.mean
-                )
-            )
-        if self.sd is not None:  # SD in branchRateParameter part of main parameters
-            self._params.append(
-                RealParameter(
-                    id=self._sd_id,
-                    name="S",
-                    value=self.sd
-                )
-            )
 
 class Uniform(Distribution):
     
@@ -97,10 +65,46 @@ class Exponential(Distribution):
             RealParameter(
                 id=self._mean_id,
                 name="mean",
-                value=self.mean
+                value=self.mean,
+                estimate=False
             )
         ]
 
+
+class LogNormal(Distribution):
+    mean: Optional[float] = ...  # required but can take None
+    sd: Optional[float]  = ...
+
+    sd_parameter: Optional[str] # used in branchRateModel LogNormal with @
+    real_space: Optional[bool] = False
+
+    _mean_id: str = PrivateAttr()
+    _sd_id: str = PrivateAttr()
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._id: str = f"LogNormal.{get_uuid(short=False)}"
+        self._mean_id = f'RealParameter.{get_uuid(short=False)}'
+        self._sd_id = f'RealParameter.{get_uuid(short=False)}'       
+
+        if self.mean is not None:
+            self._params.append(
+                RealParameter(
+                    id=self._mean_id,
+                    name="M",
+                    value=self.mean,
+                    estimate=False
+                )
+            )
+        if self.sd is not None:  # SD in branchRateParameter part of main parameters
+            self._params.append(
+                RealParameter(
+                    id=self._sd_id,
+                    name="S",
+                    value=self.sd,
+                    estimate=False
+                )
+            )
 
 class Beta(Distribution):
     alpha: float
@@ -119,12 +123,14 @@ class Beta(Distribution):
             RealParameter(
                 id=self._alpha_id,
                 name="alpha",
-                value=self.alpha
+                value=self.alpha,
+                estimate=False
             ),
             RealParameter(
                 id=self._beta_id,
                 name="beta",
-                value=self.beta
+                value=self.beta,
+                estimate=False
             )
         ]
 
@@ -148,12 +154,14 @@ class Gamma(Distribution):
             RealParameter(
                 id=self._alpha_id,
                 name="alpha",
-                value=self.alpha
+                value=self.alpha,
+                estimate=False
             ),
             RealParameter(
                 id=self._beta_id,
                 name="beta",
-                value=self.beta
+                value=self.beta,
+                estimate=False
             )
         ]
 

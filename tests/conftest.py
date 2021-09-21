@@ -1,5 +1,6 @@
 from pytest import fixture
 from pathlib import Path
+from critter.critter import Critter
 from critter.blocks.parameters import infinity
 from critter.blocks.distributions import Beta
 from critter.blocks.distributions import Gamma
@@ -11,6 +12,22 @@ from critter.blocks.priors import ClockRatePrior
 from critter.blocks.priors import ReproductiveNumberPrior
 from critter.blocks.priors import SamplingProportionPrior
 from critter.blocks.priors import BecomeUninfectiousRatePrior
+
+@fixture
+def bdss_strict_sliced_yaml_template_ok() -> Path: 
+    return Path(__file__).parent / 'data' / 'bdss_strict_sliced.yaml'
+
+
+@fixture
+def bdss_ucre_sliced_yaml_template_ok() -> Path: 
+    return Path(__file__).parent/ 'data' / 'bdss_ucre_sliced.yaml'
+
+
+@fixture
+def bdss_ucrl_sliced_yaml_template_ok() -> Path: 
+    return Path(__file__).parent / 'data' / 'bdss_ucrl_sliced.yaml'
+
+
 
 @fixture
 def critter_dates_ok() -> Path:
@@ -164,4 +181,12 @@ def bdss_become_uninfectious_rate_prior() -> BecomeUninfectiousRatePrior:
         lower=0,
         upper=infinity,
         dimension=1
+    )
+
+@fixture
+def critter_ok(critter_dates_ok, critter_alignment_ok, critter_reference_ok) -> Critter:
+    return Critter(
+        date_file=critter_dates_ok,
+        alignment_file=critter_alignment_ok,
+        reference_file=critter_reference_ok
     )

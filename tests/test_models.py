@@ -1,10 +1,16 @@
 from critter.models import BirthDeathSkylineSerial
+from critter.critter import Critter
 from pathlib import Path
 
 def test_model_bdss_success(
-    tmpdir, critter_reference_ok, critter_alignment_ok, critter_dates_ok,
-    bdss_strict_clock_model, bdss_origin_prior, bdss_sampling_proportion_prior_sliced,
-    bdss_sampling_proportion_prior, bdss_reproductive_number_prior, bdss_become_uninfectious_rate_prior
+    tmpdir, 
+    critter_ok,
+    bdss_strict_clock_model, 
+    bdss_origin_prior, 
+    bdss_sampling_proportion_prior_sliced,
+    bdss_sampling_proportion_prior, 
+    bdss_reproductive_number_prior, 
+    bdss_become_uninfectious_rate_prior
 ):
     """
     GIVEN: BirthDeathSkylineSerial instance with valid input data
@@ -12,13 +18,10 @@ def test_model_bdss_success(
     THEN:  BirthDeathSkylineSerial instance is configured correctly
     """
 
-    bdss = BirthDeathSkylineSerial(
-        date_file=critter_dates_ok,
-        alignment_file=critter_alignment_ok,
-        reference_file=critter_reference_ok
-    )
+
     # sliced sampling proportion prior
-    bdss.configure(
+    bdss = BirthDeathSkylineSerial(
+        critter=critter_ok,
         clock=bdss_strict_clock_model,
         origin=bdss_origin_prior,
         sampling_proportion=bdss_sampling_proportion_prior_sliced,
@@ -26,12 +29,13 @@ def test_model_bdss_success(
         become_uninfectious_rate=bdss_become_uninfectious_rate_prior
     )
     bdss.write(
-        xml=Path(
+        xml_file=Path(
             tmpdir.join('bdss_slice.xml')
         )
     )
     # non sliced sampling proportion prior
-    bdss.configure(
+    bdss = BirthDeathSkylineSerial(
+        critter=critter_ok,
         clock=bdss_strict_clock_model,
         origin=bdss_origin_prior,
         sampling_proportion=bdss_sampling_proportion_prior,
@@ -39,17 +43,22 @@ def test_model_bdss_success(
         become_uninfectious_rate=bdss_become_uninfectious_rate_prior
     )
     bdss.write(
-        xml=Path(
+        xml_file=Path(
             tmpdir.join('bdss_no_slice.xml')
         )
     )
 
 
 def test_model_bdss_slice_xml_function_success(
-    critter_reference_ok, critter_alignment_ok, critter_dates_ok,
-    bdss_sampling_proportion_prior, bdss_sampling_proportion_prior_sliced, 
-    bdss_reproductive_number_prior, bdss_become_uninfectious_rate_prior,
-    bdss_sampling_proportion_slice_function_xml, bdss_sampling_proportion_slice_logger_xml,
+    critter_ok,
+    bdss_strict_clock_model, 
+    bdss_origin_prior,
+    bdss_sampling_proportion_prior, 
+    bdss_sampling_proportion_prior_sliced, 
+    bdss_reproductive_number_prior, 
+    bdss_become_uninfectious_rate_prior,
+    bdss_sampling_proportion_slice_function_xml, 
+    bdss_sampling_proportion_slice_logger_xml,
     bdss_sampling_proportion_slice_rate_change_times_xml
 ):
     """
@@ -60,9 +69,12 @@ def test_model_bdss_slice_xml_function_success(
 
 
     bdss = BirthDeathSkylineSerial(
-        date_file=critter_dates_ok,
-        alignment_file=critter_alignment_ok,
-        reference_file=critter_reference_ok
+        critter=critter_ok,
+        clock=bdss_strict_clock_model,
+        origin=bdss_origin_prior,
+        sampling_proportion=bdss_sampling_proportion_prior_sliced,
+        reproductive_number=bdss_reproductive_number_prior,
+        become_uninfectious_rate=bdss_become_uninfectious_rate_prior
     )
 
     # No sliced configuration

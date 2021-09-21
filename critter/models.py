@@ -8,22 +8,26 @@ from critter.blocks.priors import BecomeUninfectiousRatePrior
 from critter.blocks.priors import SamplingProportionPrior
 
 
-class BirthDeathSkylineSerial(Critter):
+class BirthDeathSkylineSerial:
 
-    def write(self, xml: Path):
-        with xml.open('w') as xml_out:
-            xml_out.write(self.xml)
-
-    def configure(
+    def __init__(
         self,
+        critter: Critter,
         clock: Clock,
         origin: OriginPrior,
         sampling_proportion: SamplingProportionPrior,
         reproductive_number: ReproductiveNumberPrior,
         become_uninfectious_rate: BecomeUninfectiousRatePrior
-    ) -> str:
+        ):
 
-        template = self.load_template(name='bdss.xml')
+        self.critter = critter
+        self.clock = clock
+        self.origin = origin
+        self.sampling_proportion = sampling_proportion,
+        self.reproductive_number = reproductive_number
+        self.become_uninfectious_rate = become_uninfectious_rate
+
+        template = critter.load_template(name='bdss.xml')
 
         xml_slice_functions, xml_slice_rate_change_times, xml_slice_loggers = \
             self.get_slice_xmls(
@@ -31,13 +35,13 @@ class BirthDeathSkylineSerial(Critter):
             )
 
         self.xml = template.render(
-            data_xml=self.xml_alignment,
-            date_xml=self.xml_dates,
-            mcmc_xml=self.xml_run,
-            tree_log=self.tree_log,
-            tree_every=self.sample_every,
-            posterior_log=self.posterior_log,
-            posterior_every=self.sample_every,
+            data_xml=critter.xml_alignment,
+            date_xml=critter.xml_dates,
+            mcmc_xml=critter.xml_run,
+            tree_log=critter.tree_log,
+            tree_every=critter.sample_every,
+            posterior_log=critter.posterior_log,
+            posterior_every=critter.sample_every,
             origin_param=origin.xml_param,
             origin_prior=origin.xml_prior,
             reproductive_number_param=reproductive_number.xml_param,
@@ -58,7 +62,9 @@ class BirthDeathSkylineSerial(Critter):
             slice_loggers=xml_slice_loggers
         )
 
-        return self.xml
+    def write(self, xml_file: Path):
+        with xml_file.open('w') as xml_out:
+            xml_out.write(self.xml)
 
     @staticmethod
     def get_slice_xmls(

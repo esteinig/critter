@@ -10,7 +10,7 @@ from typing import List
 
 class Prior(BaseModel):
     """ Base class for priors """
-    id: str = f'Prior.{get_uuid(short=True)}'  # prior identifier prefix defined in all prior subclasses (id="")
+    id: str = f'Prior'
 
     distribution: List[Distribution]  # prior distribution/s, configured
     initial: List[float]
@@ -19,6 +19,7 @@ class Prior(BaseModel):
     dimension: int = 1
     sliced: bool = False
     intervals: list = []
+    
     param_spec: str = "parameter.RealParameter"  # changes in MTDB model to IntegerParameter
 
     def __str__(self):
@@ -61,7 +62,8 @@ class Prior(BaseModel):
             spec=self.param_spec,
             dimension=self.dimension,
             lower=self.lower,
-            upper=self.upper
+            upper=self.upper,
+            estimate=True
         )
         return param.xml
 
@@ -105,10 +107,10 @@ class Prior(BaseModel):
                 rate_change_times = 'deathRateChangeTimes'
             else:
                 raise CritterError(
-                    'Rate change times (slices or intervals) are only defined for: '
+                    'Rate change times (slices or intervals) are only defined for priors: '
                     'rho and samplingProportion (<samplingRateChangeTimes/>), '
                     'reproductiveNumber (<birthRateChangeTimes/>) and'
-                    'becomeUninfectious (<deathRateChangeTime/>) priors'
+                    'becomeUninfectious (<deathRateChangeTime/>)'
                 )
 
             return f'<{rate_change_times} ' \

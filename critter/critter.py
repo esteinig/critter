@@ -1,9 +1,9 @@
 import pandas
 import jinja2
+import yaml
 from pathlib import Path
 from pyfastx import Fasta
 from critter.errors import CritterError
-
 
 class Critter:
 
@@ -21,8 +21,6 @@ class Critter:
         chain_number: int = 4,
         missing_dates: bool = False
     ):
-
-        self.xml = None  # rendered template
         
         self.reference: dict = self.read_fasta(fasta=reference_file)
         self.alignment: dict = self.read_fasta(fasta=alignment_file)
@@ -108,3 +106,5 @@ class Critter:
                 f'totalcount="{len(set(seq))}" ' \
                 f'value="{seq}"/>\n'
         return data_block
+
+

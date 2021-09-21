@@ -1,6 +1,9 @@
 
 
 import jinja2
+
+from pathlib import Path
+
 from pandas import DataFrame
 from pytest import raises
 from critter.critter import Critter
@@ -107,3 +110,4 @@ def test_critter_base_load_template_success(
 
     assert isinstance(template, jinja2.Template)
 
+    

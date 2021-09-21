@@ -69,7 +69,8 @@ def test_prior_create_default_success():
             spec=prior.param_spec,
             dimension=prior.dimension,
             lower=prior.lower,
-            upper=prior.upper
+            upper=prior.upper,
+            estimate=True
         ))
     assert prior.xml_slice_function == ''
     assert prior.xml_slice_rate_change_times == ''
