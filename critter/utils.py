@@ -10,8 +10,6 @@ def get_uuid(short: bool = False) -> str:
     else:
         return uuid
 
-
-
 def get_year_fraction(date: datetime.datetime):
     start = datetime.date(date.year, 1, 1).toordinal()
     year_length = datetime.date(date.year+1, 1, 1).toordinal() - start

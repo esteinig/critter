@@ -22,14 +22,14 @@ def model(
     config: Path = typer.Option(..., help="Model config file"),
     alignment: Path = typer.Option(..., help="Alignment file"),
     dates: Path = typer.Option(..., help="Date file, no header, tab-seperated, name [0] dates [1]"),
-    output: Optional[Path] = typer.Option("model.xml", help="XMl model output file for BEAST"),
+    output: Optional[Path] = typer.Option("model.xml", help="XMl model output file for BEAST 2.6+"),
     tree_log: Optional[Path] = typer.Option('tree.log', help="Tree log file [sample_every intervals]"),
     posterior_log: Optional[Path] = typer.Option('posterior.log', help="Posterior log file [sample_every intervals]"),
     sample_every: Optional[int] = typer.Option(1000, help="Length of sample intervals for posterior and trees"),
     chain_length: Optional[int] = typer.Option(100000000, help="Number of steps in the Markov chain"),
     chain_type: Optional[str] = typer.Option('default', help="MCMC (default) or coupled MCMC (mcmcmc)"),
     chain_number: Optional[int] = typer.Option(4, help="Number of chains in coupled MCMC"),
-    multiple: Optional[int] = typer.Option(1, help="Multiple copies for independent chain runs"),
+    multiple: Optional[int] = typer.Option(1, help="Create multiple copies for independent runs"),
     ambiguities: Optional[bool] = typer.Option(False, help="Allow ambiguous nucleotide sites in alignment (any)"),
     datefmt: Optional[bool] = typer.Option(False, help="Dates in date file are in format: DD/MM/YYYY")
 ):
@@ -50,7 +50,7 @@ def model(
                 sample_every=sample_every,
                 chain_type=chain_type,
                 chain_number=chain_number,
-                allow_ambiguities=ambiguities,
+                ambiguities=ambiguities,
                 datefmt=datefmt
             )
         )
@@ -69,7 +69,6 @@ def summary(
     Create a posterior summary from log files
     """
 
-
     diagnostics = [PosteriorDiagnostic(log) for log in logs]
     diagnostic_summary = concat([d.summary for d in diagnostics])
     diagnostic_summary.to_csv(output, sep='\t', index=False)
@@ -84,7 +83,6 @@ def re_intervals(
     """
 
     diagnostics = [PosteriorDiagnostic(log) for log in logs]
-
     for diagnostic in diagnostics:
         plot_file = diagnostic.log.with_suffix(".png")
         plot_re_intervals(posterior_diagnostic=diagnostic, output=plot_file, last_sample=last)
@@ -100,5 +98,4 @@ def date_range(
     """
 
     max_date, min_date, delta = get_date_range(file=dates, sep='\t', datefmt=datefmt)
-
     print(f"{min_date} - {max_date} [{delta}]")

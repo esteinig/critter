@@ -1,5 +1,4 @@
 import jinja2
-import yaml
 from pathlib import Path
 from pyfastx import Fasta
 from critter.utils import get_year_fraction
@@ -19,7 +18,7 @@ class Critter:
         chain_length: int = 100000,
         chain_type: str = 'default',
         chain_number: int = 4,
-        allow_ambiguities: bool = False,
+        ambiguities: bool = False,
         datefmt: bool = False
     ):
 
@@ -29,7 +28,7 @@ class Critter:
         self.chain_length = chain_length
         self.chain_type = chain_type
         self.chain_number = chain_number
-        self.allow_ambiguities = allow_ambiguities
+        self.ambiguities = ambiguities
         self.datefmt = datefmt
 
         self.alignment: dict = self.read_fasta(fasta=alignment_file)
@@ -126,7 +125,7 @@ class Critter:
 
     @property
     def xml_ambiguities(self) -> str:
-        if self.allow_ambiguities:
+        if self.ambiguities:
             return 'useAmbiguities="true"'
         else:
             return 'useAmbiguities="false"'
