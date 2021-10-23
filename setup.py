@@ -20,7 +20,8 @@ setup(
         "typer",
         "pyfastx",
         "jinja2",
-        "pandas"
+        "pandas",
+        "arviz"
     ],
     extras_require={
       'tests': ['pytest', 'pytest-cov']

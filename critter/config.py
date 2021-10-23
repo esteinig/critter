@@ -53,6 +53,7 @@ class DistributionConfig(BaseModel):
     sd: Optional[float]
     alpha: Optional[float]
     beta: Optional[float]
+    real_space: Optional[bool]
 
 
 class ModelPriorConfig(BaseModel):
@@ -96,13 +97,14 @@ class CritterConfig(BaseModel):
     model_config: ModelConfig
     clock_priors: List[ClockPriorConfig]
     model_priors: List[ModelPriorConfig]
-    
 
     def get_model(self, critter: Critter):
         """ Model factory from configured model schema """
 
         clock_model = self.get_clock_model()
         model_priors = self.get_model_priors()
+
+        print(clock_model.__dict__)
 
         if self.model_config.type == ModelType.bdss:
 
@@ -167,6 +169,7 @@ class CritterConfig(BaseModel):
         clock_priors = self.get_clock_priors()
 
         if len(clock_priors) == 1 and isinstance(clock_priors[0], ClockRatePrior):
+
             return StrictClock(
                 fixed=self.model_config.fixed_clock,
                 prior=clock_priors
@@ -273,3 +276,6 @@ def load_config(yaml_file: Path) -> CritterConfig:
         return CritterConfig.parse_obj(config)
     except ValidationError:
         raise
+
+
+# Dynamic config of template

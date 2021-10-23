@@ -1,9 +1,10 @@
-import pandas
 import jinja2
 import yaml
 from pathlib import Path
 from pyfastx import Fasta
+from critter.utils import get_year_fraction
 from critter.errors import CritterError
+import datetime
 
 class Critter:
 
@@ -11,20 +12,16 @@ class Critter:
         self,
         date_file: Path,
         alignment_file: Path,
-        reference_file: Path,
-        output_prefix: str = "model",
+        reference_file: Path = None,
         tree_log: Path = Path('tree.log'),
         posterior_log: Path = Path('posterior.log'),
         sample_every: int = 1000,
         chain_length: int = 100000,
         chain_type: str = 'default',
         chain_number: int = 4,
-        missing_dates: bool = False
+        allow_ambiguities: bool = False,
+        datefmt: bool = False
     ):
-        
-        self.reference: dict = self.read_fasta(fasta=reference_file)
-        self.alignment: dict = self.read_fasta(fasta=alignment_file)
-        self.dates: pandas.DataFrame = self.read_dates(date_file=date_file)
 
         self.tree_log = tree_log
         self.posterior_log = posterior_log
@@ -32,8 +29,14 @@ class Critter:
         self.chain_length = chain_length
         self.chain_type = chain_type
         self.chain_number = chain_number
-        self.output_prefix = output_prefix
-        self.missing_dates = missing_dates
+        self.allow_ambiguities = allow_ambiguities
+        self.datefmt = datefmt
+
+        self.alignment: dict = self.read_fasta(fasta=alignment_file)
+        self.dates: dict = self.read_dates(date_file=date_file)
+
+        if reference_file is not None:
+            self.reference: dict = self.read_fasta(fasta=reference_file)
 
     @staticmethod
     def load_template(name: str):
@@ -44,8 +47,7 @@ class Critter:
         template = template_env.get_template(name)
         return template
 
-    @staticmethod
-    def read_fasta(fasta: Path) -> dict:
+    def read_fasta(self, fasta: Path) -> dict:
         fasta = {
             name: seq.upper() for name, seq in
             Fasta(str(fasta), build_index=False)  # capital bases
@@ -53,26 +55,42 @@ class Critter:
         for name, seq in fasta.items():
             bases = set(seq)
             for base in bases:
-                if base not in ('A', 'C', 'T', 'G', 'N'):
+                if base not in ('A', 'C', 'T', 'G', 'N') and not self.allow_ambiguities:
                     raise CritterError(f'Sequence for {name} contains base other than ACTGN: {bases}')
         return fasta
 
     def read_dates(self, date_file: Path):
-        df = pandas.read_csv(date_file, sep='\t', header=None, names=['name', 'date'], na_values=['-', 'none', 'null', 'missing', 'na', 'NA'])        
-        # Check that no missing data is in data frame
-        if df.isnull().values.any():
-            raise CritterError('Missing data not allowed in date file')
+        null = ['-', 'none', 'null', 'missing', 'na', 'NA']
+        # Names always in column 1, dates always in column 2, no header
+        with date_file.open("r") as date_file_input:
+            dates = {
+                line.strip().split()[0]: line.strip().split()[1] 
+                for line in date_file_input
+            }
+        # Check that no name or date is missing
+        for name, date in dates.items():
+            if date in null or name in null:
+                raise CritterError(f'Missing data not allowed in date file [{name}: {date}]')
         # Check that all sequences from alignment have a date
         for name in self.alignment.keys():
-            if name not in df['name'].values:
+            if name not in dates.keys():
                 raise CritterError(f'Aligned sequence {name} does not have a date')
-        return df
+        # If the date column is in date format DD/MM/YYYY
+        if self.datefmt:
+            new_dates = {}
+            for name, date in dates.items():
+                date_time = datetime.datetime.strptime(date, "%d/%m/%Y")
+                new_dates[name] = get_year_fraction(date_time)
+            dates = new_dates.copy()
+        # Get only dates that are in sequence alignment
+        seq_dates = {name: date for name, date in dates.items() if name in self.alignment.keys()}        
+        return seq_dates
 
     # XML BLOCKS FOR BASE PARAMS
 
     @property
     def xml_run(self) -> str:
-        if self.chain_type == 'coupled':
+        if self.chain_type in ('coupled', 'adaptive', 'mcmcmc'):
             return f'<run ' \
                 f'id="mcmc" ' \
                 f'spec="beast.coupledMCMC.CoupledMCMC" ' \
@@ -92,7 +110,7 @@ class Critter:
     @property
     def xml_dates(self) -> str:
         return ",".join([
-            f'{row["name"]}={row["date"]}' for _, row in self.dates.iterrows()
+            f'{name}={date}' for name, date in self.dates.items()
         ])
 
     @property
@@ -103,8 +121,12 @@ class Critter:
                 f'id="seq_{name}" ' \
                 f'spec="Sequence" ' \
                 f'taxon="{name}" ' \
-                f'totalcount="{len(set(seq))}" ' \
                 f'value="{seq}"/>\n'
         return data_block
 
-
+    @property
+    def xml_ambiguities(self) -> str:
+        if self.allow_ambiguities:
+            return 'useAmbiguities="true"'
+        else:
+            return 'useAmbiguities="false"'

@@ -36,7 +36,7 @@ class Distribution(BaseModel):
     def _get_distr_config(self) -> str:
         """ Get optional distribution configs from subclasses """
         return ' '.join([
-            f'{self._attr_name[attr]}="{value}"'
+            f'{self._attr_name[attr]}="{value if not isinstance(value, bool) else str(value).lower()}"'
             for attr, value in vars(self).items()
             if value is not None and attr in self._attr_name.keys()
         ])

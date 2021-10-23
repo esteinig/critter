@@ -1,1 +1,1 @@
-recursive-include beastling/templates *
+recursive-include critter/templates *

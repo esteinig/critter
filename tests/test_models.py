@@ -28,7 +28,7 @@ def test_model_bdss_success(
         reproductive_number=bdss_reproductive_number_prior,
         become_uninfectious_rate=bdss_become_uninfectious_rate_prior
     )
-    bdss.write(
+    bdss.render(
         xml_file=Path(
             tmpdir.join('bdss_slice.xml')
         )
@@ -42,7 +42,7 @@ def test_model_bdss_success(
         reproductive_number=bdss_reproductive_number_prior,
         become_uninfectious_rate=bdss_become_uninfectious_rate_prior
     )
-    bdss.write(
+    bdss.render(
         xml_file=Path(
             tmpdir.join('bdss_no_slice.xml')
         )

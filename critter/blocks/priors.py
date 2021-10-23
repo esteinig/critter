@@ -2,7 +2,6 @@
 from pydantic import BaseModel, ValidationError, root_validator, validator
 from critter.blocks.distributions import Distribution
 from critter.blocks.parameters import RealParameter
-from critter.utils import get_uuid
 from critter.errors import CritterError
 from math import inf as infinity
 from typing import List

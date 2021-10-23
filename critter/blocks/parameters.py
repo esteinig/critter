@@ -32,6 +32,7 @@ class Parameter(BaseModel):
         return f'<parameter id="{self.id}" ' \
                f'spec="{self.spec}" ' \
                f'estimate="{str(self.estimate).lower()}" ' \
+               f'dimension="{self.dimension}" ' \
                f'lower="{lower}" ' \
                f'upper="{upper}" ' \
                f'name="{self.name}">{self.value}' \

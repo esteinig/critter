@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 from pathlib import Path
 from critter.critter import Critter
 from critter.blocks.clocks import Clock
@@ -7,6 +7,12 @@ from critter.blocks.priors import ReproductiveNumberPrior
 from critter.blocks.priors import BecomeUninfectiousRatePrior
 from critter.blocks.priors import SamplingProportionPrior
 
+class DynamicModel:
+
+    def configure(
+        configs: List[str]
+    ):
+        pass
 
 class BirthDeathSkylineSerial:
 
@@ -18,53 +24,55 @@ class BirthDeathSkylineSerial:
         sampling_proportion: SamplingProportionPrior,
         reproductive_number: ReproductiveNumberPrior,
         become_uninfectious_rate: BecomeUninfectiousRatePrior
-        ):
-
+    ):
         self.critter = critter
+
         self.clock = clock
         self.origin = origin
-        self.sampling_proportion = sampling_proportion,
+        self.sampling_proportion = sampling_proportion
         self.reproductive_number = reproductive_number
         self.become_uninfectious_rate = become_uninfectious_rate
 
-        template = critter.load_template(name='bdss.xml')
+        self.template = critter.load_template(name='bdss.xml')
+
+    def render(self, xml_file: Path):
 
         xml_slice_functions, xml_slice_rate_change_times, xml_slice_loggers = \
             self.get_slice_xmls(
-                priors=(reproductive_number, become_uninfectious_rate, sampling_proportion)
+                priors=(self.reproductive_number, self.become_uninfectious_rate, self.sampling_proportion)
             )
 
-        self.xml = template.render(
-            data_xml=critter.xml_alignment,
-            date_xml=critter.xml_dates,
-            mcmc_xml=critter.xml_run,
-            tree_log=critter.tree_log,
-            tree_every=critter.sample_every,
-            posterior_log=critter.posterior_log,
-            posterior_every=critter.sample_every,
-            origin_param=origin.xml_param,
-            origin_prior=origin.xml_prior,
-            reproductive_number_param=reproductive_number.xml_param,
-            reproductive_number_prior=reproductive_number.xml_prior,
-            sampling_proportion_param=sampling_proportion.xml_param,
-            sampling_proportion_prior=sampling_proportion.xml_prior,
-            become_uninfectious_param=become_uninfectious_rate.xml_param,
-            become_uninfectious_prior=become_uninfectious_rate.xml_prior,
-            clock_param=clock.xml_param,
-            clock_prior=clock.xml_prior,
-            clock_state_node=clock.xml_state_node,
-            clock_branch_rate=clock.xml_branch_rate_model,
-            clock_scale_operator=clock.xml_scale_operator,
-            clock_updown_operator=clock.xml_updown_operator,
-            clock_logger=clock.xml_logger,
+        xml = self.template.render(
+            ambiguities=self.critter.xml_ambiguities,
+            data_xml=self.critter.xml_alignment,
+            date_xml=self.critter.xml_dates,
+            mcmc_xml=self.critter.xml_run,
+            tree_log=self.critter.tree_log,
+            tree_every=self.critter.sample_every,
+            posterior_log=self.critter.posterior_log,
+            posterior_every=self.critter.sample_every,
+            origin_param=self.origin.xml_param,
+            origin_prior=self.origin.xml_prior,
+            reproductive_number_param=self.reproductive_number.xml_param,
+            reproductive_number_prior=self.reproductive_number.xml_prior,
+            sampling_proportion_param=self.sampling_proportion.xml_param,
+            sampling_proportion_prior=self.sampling_proportion.xml_prior,
+            become_uninfectious_param=self.become_uninfectious_rate.xml_param,
+            become_uninfectious_prior=self.become_uninfectious_rate.xml_prior,
+            clock_param=self.clock.xml_param,
+            clock_prior=self.clock.xml_prior,
+            clock_state_node=self.clock.xml_state_node,
+            clock_branch_rate=self.clock.xml_branch_rate_model,
+            clock_scale_operator=self.clock.xml_scale_operator,
+            clock_updown_operator=self.clock.xml_updown_operator,
+            clock_logger=self.clock.xml_logger,
             slice_functions=xml_slice_functions,
             slice_rates=xml_slice_rate_change_times,
             slice_loggers=xml_slice_loggers
         )
 
-    def write(self, xml_file: Path):
         with xml_file.open('w') as xml_out:
-            xml_out.write(self.xml)
+            xml_out.write(xml)
 
     @staticmethod
     def get_slice_xmls(

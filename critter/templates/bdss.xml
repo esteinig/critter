@@ -94,7 +94,7 @@
                 </distribution>
             <!--POSTERIOR LIKELIHOOD BLOCK-->
             <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
-                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" data="@Alignment" tree="@Tree">
+                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" data="@Alignment" tree="@Tree" {{ ambiguities }}>
                     <!--SITE MODEL BLOCK-->
                     <siteModel id="SiteModel" spec="SiteModel" gammaCategoryCount="4" shape="@gammaShape">
                         <parameter id="mutationRate" spec="parameter.RealParameter" estimate="false" name="mutationRate">1.0</parameter>
