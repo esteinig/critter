@@ -1,11 +1,14 @@
 from typing import Tuple, List
 from pathlib import Path
+from critter.blocks import substitutions
 from critter.critter import Critter
 from critter.blocks.clocks import Clock
+from critter.blocks.substitutions import SubstitutionModel
 from critter.blocks.priors import OriginPrior
 from critter.blocks.priors import ReproductiveNumberPrior
 from critter.blocks.priors import BecomeUninfectiousRatePrior
 from critter.blocks.priors import SamplingProportionPrior
+
 
 class DynamicModel:
 
@@ -14,11 +17,13 @@ class DynamicModel:
     ):
         pass
 
+
 class BirthDeathSkylineSerial:
 
     def __init__(
         self,
         critter: Critter,
+        substitution: SubstitutionModel,
         clock: Clock,
         origin: OriginPrior,
         sampling_proportion: SamplingProportionPrior,
@@ -26,7 +31,7 @@ class BirthDeathSkylineSerial:
         become_uninfectious_rate: BecomeUninfectiousRatePrior
     ):
         self.critter = critter
-
+        self.substitution = substitution
         self.clock = clock
         self.origin = origin
         self.sampling_proportion = sampling_proportion
@@ -43,7 +48,7 @@ class BirthDeathSkylineSerial:
             )
 
         xml = self.template.render(
-            ambiguities=self.critter.xml_ambiguities,
+            # Run config
             data_xml=self.critter.xml_alignment,
             date_xml=self.critter.xml_dates,
             mcmc_xml=self.critter.xml_run,
@@ -51,6 +56,8 @@ class BirthDeathSkylineSerial:
             tree_every=self.critter.sample_every,
             posterior_log=self.critter.posterior_log,
             posterior_every=self.critter.sample_every,
+            ambiguities=self.critter.xml_ambiguities,
+            # Model priors
             origin_param=self.origin.xml_param,
             origin_prior=self.origin.xml_prior,
             reproductive_number_param=self.reproductive_number.xml_param,
@@ -59,6 +66,7 @@ class BirthDeathSkylineSerial:
             sampling_proportion_prior=self.sampling_proportion.xml_prior,
             become_uninfectious_param=self.become_uninfectious_rate.xml_param,
             become_uninfectious_prior=self.become_uninfectious_rate.xml_prior,
+            # Clock model
             clock_param=self.clock.xml_param,
             clock_prior=self.clock.xml_prior,
             clock_state_node=self.clock.xml_state_node,
@@ -66,6 +74,13 @@ class BirthDeathSkylineSerial:
             clock_scale_operator=self.clock.xml_scale_operator,
             clock_updown_operator=self.clock.xml_updown_operator,
             clock_logger=self.clock.xml_logger,
+            # Substitution model
+            substitution_param=self.substitution.xml_param,
+            substitution_prior=self.substitution.xml_prior,
+            substitution_model=self.substitution.xml_model,
+            substitution_operator=self.substitution.xml_operator,
+            substitution_logger=self.substitution.xml_logger,
+            # Slices
             slice_functions=xml_slice_functions,
             slice_rates=xml_slice_rate_change_times,
             slice_loggers=xml_slice_loggers

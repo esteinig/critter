@@ -7,6 +7,7 @@ from math import ceil
 from pathlib import Path
 from arviz.stats import hdi
 
+
 class PosteriorDiagnostic:
 
     def __init__(self, log_file: Path, burnin: float = 0.1):
@@ -59,7 +60,7 @@ class PosteriorDiagnostic:
         summaries = []
         for column in self.data.columns:
             if column != 'Sample':
-                posterior= self.data.loc[:, column]
+                posterior = self.data.loc[:, column]
                 hpd_lower, hpd_upper = hdi(posterior.values, hdi_prob=alpha)
                 summaries.append((
                     column, 
@@ -87,8 +88,5 @@ class PosteriorDiagnostic:
         the median tree height
         
         """
-        median_tree_height = self.df['TreeHeight'].median()
-        median_root_age = most_recent_sample_date - median_tree_height
 
-        skyline_subset = self.df[[c for c in self.df.columns if c.startswith('reproductiveNumber')]]
-        skyline_timegrid = range(1, ceil(median_root_age))
+        pass

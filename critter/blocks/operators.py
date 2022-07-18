@@ -19,6 +19,7 @@ class Operator(BaseModel):
 # Specific subclasses defined by "spec"
 class ScaleOperator(Operator):
     spec: str = "ScaleOperator"
+
     parameter: str
     weight: float = 1.0
     scale_factor: float = 0.5
@@ -36,6 +37,7 @@ class ScaleOperator(Operator):
 
 class IntegerRandomWalkOperator(Operator):
     spec: str = "IntRandomWalkOperator"
+
     parameter: str
     weight: float = 10.0
     window_size: int = 1
@@ -53,6 +55,7 @@ class IntegerRandomWalkOperator(Operator):
 
 class SwapOperator(Operator):
     spec: str = "SwapOperator"
+
     parameter: str
     weight: float = 10.0
 
@@ -68,6 +71,7 @@ class SwapOperator(Operator):
 
 class UniformOperator(Operator):
     spec: str = "UniformOperator"
+
     parameter: str
     weight: float = 10.0
 
@@ -83,6 +87,7 @@ class UniformOperator(Operator):
 
 class UpDownOperator(Operator):
     spec: str = "UpDownOperator"
+
     up_idref: str
     down_idref: str
     weight: float = 3.0
@@ -98,3 +103,22 @@ class UpDownOperator(Operator):
                f'<up idref="{self.up_idref}" />' \
                f'<down idref="{self.down_idref}" />' \
                f'</operator>'
+
+
+class FrequenciesExchanger(Operator):
+    spec: str = "DeltaExchangeOperator"
+
+    parameter: str
+    weight: float = 0.1
+    delta: float = 0.01
+
+    @property
+    def xml(self):
+        return f'<operator ' \
+               f'id="{self.id}" ' \
+               f'spec="{self.spec}" ' \
+               f'parameter="{self.spec}" ' \
+               f'delta="{self.delta}" ' \
+               f'weight="{self.weight}">' \
+               f'</operator>'
+

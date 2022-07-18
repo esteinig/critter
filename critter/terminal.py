@@ -5,8 +5,8 @@ from critter.config import load_config
 from pandas import concat
 from pathlib import Path
 from critter.diagnostic import PosteriorDiagnostic
-from critter.plots import plot_re_intervals
-from critter.utils import get_date_range
+from critter.plots import plot_equal_re_intervals, plot_sample_date_distribution, plot_bdsky_posterior_summary
+from critter.utils import get_date_range, dates_from_fasta
 
 app = typer.Typer(add_completion=False)
 
@@ -16,6 +16,7 @@ app.add_typer(bdsky_app, name="bdsky")
 
 utils_app = typer.Typer()
 app.add_typer(utils_app, name="utils")
+
 
 @bdsky_app.command()
 def model(
@@ -60,6 +61,7 @@ def model(
         else:
             critter_model.render(xml_file=output)
 
+
 @bdsky_app.command()
 def summary(
     logs: List[Path],
@@ -73,6 +75,7 @@ def summary(
     diagnostic_summary = concat([d.summary for d in diagnostics])
     diagnostic_summary.to_csv(output, sep='\t', index=False)
 
+
 @bdsky_app.command()
 def re_intervals(
     logs: List[Path],
@@ -85,7 +88,28 @@ def re_intervals(
     diagnostics = [PosteriorDiagnostic(log) for log in logs]
     for diagnostic in diagnostics:
         plot_file = diagnostic.log.with_suffix(".png")
-        plot_re_intervals(posterior_diagnostic=diagnostic, output=plot_file, last_sample=last)
+        plot_equal_re_intervals(posterior_diagnostic=diagnostic, output=plot_file, last_sample=last)
+
+
+@bdsky_app.command()
+def posterior_dist(
+    posterior_log: Path = typer.Argument(..., help="Posterior log file of model run"),
+    prior_log: Optional[Path] = typer.Option(None, help="Log of same model run with sampling from prior"),
+    output: Optional[Path] = typer.Option('posterior.png', help="Output file for posterior summary")
+):
+    """
+    Create a plot of model parameter posterior density distributions
+    """
+    post = PosteriorDiagnostic(posterior_log)
+
+    # matching log, sampled from prior
+    if prior_log is not None:
+        prior = PosteriorDiagnostic(prior_log)
+    else:
+        prior = None
+
+    plot_file = post.log.with_suffix(".png")
+    plot_bdsky_posterior_summary(posterior=post, posterior_prior=prior, output=plot_file)
 
 
 @utils_app.command()
@@ -97,5 +121,35 @@ def date_range(
     Output the date range for a date file
     """
 
-    max_date, min_date, delta = get_date_range(file=dates, sep='\t', datefmt=datefmt)
+    max_date, min_date, delta, counts = get_date_range(file=dates, sep='\t', datefmt=datefmt)
     print(f"{min_date} - {max_date} [{delta}]")
+    print(counts)
+
+
+@utils_app.command()
+def date_density(
+    dates: List[Path] = typer.Argument(..., help="Date file, no header, tab-seperated, name [0] dates [1]"),
+    datefmt: Optional[bool] = typer.Option(False, help="Dates in date file are in format: DD/MM/YYYY"),
+    equal_slices: Optional[int] = typer.Option(0, help="Vertical lines denoting equal slice change points"),
+    output: Path = typer.Option("date_density.png", help="Output plot file for date distributions")
+):
+    """
+    Output a plot of the date distributions 
+    """
+
+    plot_sample_date_distribution(date_files=dates, datefmt=datefmt, equal_slices=equal_slices, output=output)
+
+
+@utils_app.command()
+def date_from_fasta(
+    fasta: Path = typer.Argument(..., help="Fasta file with dates in sequence identifier"),
+    date_idx: int = typer.Option(default=2, help="Sequence date index in sequence identifier"),
+    datefmt: Optional[bool] = typer.Option(False, help="Dates are in format: DD/MM/YYYY"),
+    output: Path = typer.Option("dates.tsv", help="Output plot file for date distributions")
+):
+    """
+    Output a plot of the date distributions
+    """
+
+    dates_from_fasta(fasta=fasta, date_file=output, date_idx=date_idx, datefmt=datefmt)
+

@@ -1,7 +1,7 @@
 import jinja2
 from pathlib import Path
 from pyfastx import Fasta
-from critter.utils import get_year_fraction
+from critter.utils import get_float_dates, NULL
 from critter.errors import CritterError
 import datetime
 
@@ -54,12 +54,12 @@ class Critter:
         for name, seq in fasta.items():
             bases = set(seq)
             for base in bases:
-                if base not in ('A', 'C', 'T', 'G', 'N') and not self.allow_ambiguities:
+                if base not in ('A', 'C', 'T', 'G', 'N') and not self.ambiguities:
                     raise CritterError(f'Sequence for {name} contains base other than ACTGN: {bases}')
         return fasta
 
     def read_dates(self, date_file: Path):
-        null = ['-', 'none', 'null', 'missing', 'na', 'NA']
+        
         # Names always in column 1, dates always in column 2, no header
         with date_file.open("r") as date_file_input:
             dates = {
@@ -68,7 +68,7 @@ class Critter:
             }
         # Check that no name or date is missing
         for name, date in dates.items():
-            if date in null or name in null:
+            if date in NULL or name in NULL:
                 raise CritterError(f'Missing data not allowed in date file [{name}: {date}]')
         # Check that all sequences from alignment have a date
         for name in self.alignment.keys():
@@ -76,11 +76,7 @@ class Critter:
                 raise CritterError(f'Aligned sequence {name} does not have a date')
         # If the date column is in date format DD/MM/YYYY
         if self.datefmt:
-            new_dates = {}
-            for name, date in dates.items():
-                date_time = datetime.datetime.strptime(date, "%d/%m/%Y")
-                new_dates[name] = get_year_fraction(date_time)
-            dates = new_dates.copy()
+            dates = get_float_dates(dates)
         # Get only dates that are in sequence alignment
         seq_dates = {name: date for name, date in dates.items() if name in self.alignment.keys()}        
         return seq_dates

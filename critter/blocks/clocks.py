@@ -147,8 +147,8 @@ class UCREClock(Clock):
         else:
             return UpDownOperator(
                 id="ucreMeanUpDownOperator",
-                up_idref="ucreMean", # idref no @
-                down_idref="Tree" # idref no @
+                up_idref="ucreMean",  # idref no @
+                down_idref="Tree"  # idref no @
             ).xml
 
 

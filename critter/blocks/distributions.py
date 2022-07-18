@@ -5,6 +5,7 @@ from critter.utils import get_uuid
 from typing import List, Optional
 from pydantic import BaseModel, PrivateAttr
 
+
 class Distribution(BaseModel):
     _id: str = PrivateAttr()
     _params: List[RealParameter] = PrivateAttr(default=[])
@@ -40,7 +41,6 @@ class Distribution(BaseModel):
             for attr, value in vars(self).items()
             if value is not None and attr in self._attr_name.keys()
         ])
-
 
 
 class Uniform(Distribution):
@@ -105,6 +105,7 @@ class LogNormal(Distribution):
                     estimate=False
                 )
             )
+
 
 class Beta(Distribution):
     alpha: float

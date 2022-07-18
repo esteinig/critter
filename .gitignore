@@ -1,6 +1,8 @@
 # IDE
 .idea/
 .vscode/
+containers/
+eval/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

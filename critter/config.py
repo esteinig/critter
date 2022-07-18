@@ -6,21 +6,30 @@
 # Should merge into combined block / config models in the future
 
 import yaml
+import json
 from pathlib import Path
 from enum import Enum
 from typing import List, Optional, Dict
+from critter.errors import CritterError
 from pydantic import BaseModel, ValidationError
 from critter.critter import Critter
 from critter.models import BirthDeathSkylineSerial
+from critter.blocks.substitutions import SubstitutionModel, GTR, HKY
 from critter.blocks.clocks import Clock, StrictClock, UCREClock, UCRLClock
 from critter.blocks.priors import BecomeUninfectiousRatePrior, ClockRatePrior, OriginPrior, ReproductiveNumberPrior, SamplingProportionPrior, UCREPrior, UCRLMeanPrior, UCRLSDPrior, Prior
 from critter.blocks.distributions import Distribution, Uniform, Exponential, LogNormal, Beta, Gamma
 
 # Restricted choices
 
+
 class ModelType(str, Enum):
     bdss = 'birth_death_skyline_serial'
     bdsc = 'birth_death_skyline_contemporary'
+
+
+class SubstitutionModelType(str, Enum):
+    hky = 'hky'
+    gtr = 'gtr'
 
 
 class ModelPriorType(str, Enum):
@@ -86,6 +95,7 @@ class ModelInfo(BaseModel):
 
 class ModelConfig(BaseModel):
     type: ModelType 
+    substitution_model: SubstitutionModelType
     fixed_clock: bool
 
 
@@ -98,19 +108,33 @@ class CritterConfig(BaseModel):
     clock_priors: List[ClockPriorConfig]
     model_priors: List[ModelPriorConfig]
 
+    def __str__(self) -> str:
+
+        return f"""
+        Critter configuration
+        =====================
+
+        Model type: {self.model_config.type} 
+        Substitution model: {self.model_config.substitution_model}
+        Fixed clock: {self.model_config.fixed_clock}
+        
+        """
+
     def get_model(self, critter: Critter):
         """ Model factory from configured model schema """
 
         clock_model = self.get_clock_model()
+        substitution_model = self.get_substitution_model()
         model_priors = self.get_model_priors()
 
-        print(clock_model.__dict__)
+        print(str(self))
+        print(self.__dict__)
 
         if self.model_config.type == ModelType.bdss:
-
             return BirthDeathSkylineSerial(
                 critter=critter,
                 clock=clock_model,
+                substitution=substitution_model,
                 origin=model_priors.get('origin'),
                 reproductive_number=model_priors.get('reproductive_number'),
                 sampling_proportion=model_priors.get('sampling_proportion'),
@@ -118,6 +142,16 @@ class CritterConfig(BaseModel):
             )
         else:
             raise ValueError(f'Could not infer model type from given model configuration: {self.model_config.type}')
+
+    def get_substitution_model(self) -> SubstitutionModel:
+        
+        if self.model_config.substitution_model == SubstitutionModelType.gtr:
+            return GTR()
+        elif self.model_config.substitution_model == SubstitutionModelType.hky:
+            return HKY()
+        else:
+            raise CritterError(f"Substitution model not supported: {self.model_config.substitution_model }")
+
 
     def get_clock_priors(self) -> List[Prior]:
         """ Clock prior factory from configured model schema """
