@@ -13,10 +13,19 @@ setup(
         "fastapi",
         "colorama",
         "pyyaml",
+        "pytest",
+        "pytest-cov",
         "pydantic",
         "requests",
-        "typer"
+        "typer",
+        "pyfastx",
+        "jinja2",
+        "pandas",
+        "arviz"
     ],
+    extras_require={
+      'tests': ['pytest', 'pytest-cov']
+    },
     entry_points="""
     [console_scripts]
     critter=critter.terminal:app

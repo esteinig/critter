@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--Packages: BDSKY, BEASTLab-->
+<beast
+    beautitemplate='Standard'
+    beautistatus=''
+    namespace="beast.core:beast.evolution.alignment:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.nuc:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.evolution.likelihood"
+    required=""
+    version="2.6"
+>
+    <!--PRIOR XML MAPPINGS-->
+    <map name="Uniform" >beast.math.distributions.Uniform</map>
+    <map name="Exponential" >beast.math.distributions.Exponential</map>
+    <map name="LogNormal" >beast.math.distributions.LogNormalDistributionModel</map>
+    <map name="Normal" >beast.math.distributions.Normal</map>
+    <map name="Beta" >beast.math.distributions.Beta</map>
+    <map name="Gamma" >beast.math.distributions.Gamma</map>
+    <map name="LaplaceDistribution" >beast.math.distributions.LaplaceDistribution</map>
+    <map name="Prior" >beast.math.distributions.Prior</map>
+    <map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
+    <map name="OneOnX" >beast.math.distributions.OneOnX</map>
+    <!--SEQUENCE ALIGNMENT-->
+    <data id="Alignment" spec="Alignment" name="alignment">
+        {{ data_xml }}
+    </data>
+    <!--SLICE FUNCTIONS-->
+    {{ slice_functions }}
+    <!--RUN BLOCK WITH MARKOV CHAIN AND MODEL PARAMETERS-->
+    {{ mcmc_xml }}
+        <!--STATE BLOCK FOR INITIAL PARAMETERS - POSTERIOR EVERY USED FOR STATE STORE-->
+        <state id="state" spec="State" storeEvery="{{ posterior_every }}">
+            <!--TREE BLOCK WITH DATES LINKING TO ALIGNMENT-->
+            <tree id="Tree" spec="beast.evolution.tree.Tree" name="stateNode">
+                <trait id="dateTrait" spec="beast.evolution.tree.TraitSet" traitname="date-forward" value="{{ date_xml }}">
+                    <taxa id="TaxonSet" spec="TaxonSet">
+                        <alignment idref="Alignment"/>
+                    </taxa>
+                </trait>
+                <taxonset idref="TaxonSet"/>
+            </tree>
+            <!--SUBSTITUTION PARAMETERS-->
+            <parameter id="gammaShape" spec="parameter.RealParameter" name="stateNode">10.0</parameter>
+            {{ substitution_param }}
+            <!--MODEL PARAMETERS-->
+            {{ origin_param }}
+            {{ reproductive_number_param }}
+            {{ sampling_proportion_param }}
+            {{ become_uninfectious_param }}
+            <!--CLOCK PARAMETERS-->
+            {{ clock_param }}
+            {{ clock_state_node }}
+        </state>
+
+        <!--RANDOM STARTING TREE BLOCK-->
+        <init id="RandomTree" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree" taxa="@Alignment">
+            <populationModel id="ConstantPopulation" spec="ConstantPopulation">
+                <parameter id="randomPopSize" spec="parameter.RealParameter" name="popSize">1.0</parameter>
+            </populationModel>
+        </init>
+        <!--POSTERIOR DISTRIBUTION BLOCK-->
+        <distribution id="posterior" spec="util.CompoundDistribution">
+                <!--PRIOR DISTRIBUTION BLOCKS-->
+                <distribution id="prior" spec="util.CompoundDistribution">
+                    <!--BDSKY PRIOR BLOCK-->
+                    <distribution
+                        id="BirthDeathSkylineSerial"
+                        spec="beast.evolution.speciation.BirthDeathSkylineModel"
+                        becomeUninfectiousRate="@becomeUninfectiousRate"
+                        origin="@origin"
+                        reproductiveNumber="@reproductiveNumber"
+                        samplingProportion="@samplingProportion"
+                        tree="@Tree"
+                    >
+                    {{ slice_rates }}
+                    </distribution>
+                    <!--SUBSTITUTION MODEL PRIOR BLOCK-->
+                    <Prior id="GammaShapePrior" name="distribution" x="@gammaShape"><Exponential id="Exponential.0" name="distr"><parameter id="RealParameter.0" spec="parameter.RealParameter" estimate="false" name="mean">10.0</parameter></Exponential></Prior>
+                    {{ substitution_prior }}
+                    <!--MODEL AND CLOCK PRIOR BLOCK-->
+                    {{ origin_prior }}
+                    {{ reproductive_number_prior }}
+                    {{ sampling_proportion_prior }}
+                    {{ become_uninfectious_prior }}
+                    {{ clock_prior }}
+                </distribution>
+            <!--POSTERIOR LIKELIHOOD BLOCK-->
+            <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
+                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" data="@Alignment" tree="@Tree" {{ ambiguities }}>
+                    <!--SITE MODEL BLOCK-->
+                    <siteModel id="SiteModel" spec="SiteModel" gammaCategoryCount="4" shape="@gammaShape">
+                        <parameter id="mutationRate" spec="parameter.RealParameter" estimate="false" name="mutationRate">1.0</parameter>
+                        <parameter id="proportionInvariant" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
+                        <!--SUBSTITUTION MODEL BLOCK-->
+                        {{ substitution_model }}
+                    </siteModel>
+                    {{ clock_branch_rate }}
+                </distribution>
+            </distribution>
+        </distribution>
+        <!--OPERATOR BLOCK-->
+        <!--        {{ substitution_operator }}-->
+        <operator id="FrequenciesExchanger" spec="DeltaExchangeOperator" delta="0.01" weight="0.1">
+                    <parameter idref="frequencyParameter"/>
+        </operator>
+        <operator id="rateACScaler" spec="ScaleOperator" parameter="@rateAC" scaleFactor="0.5" weight="0.1"/>
+        <operator id="rateAGScaler" spec="ScaleOperator" parameter="@rateAG" scaleFactor="0.5" weight="0.1"/>
+        <operator id="rateATScaler" spec="ScaleOperator" parameter="@rateAT" scaleFactor="0.5" weight="0.1"/>
+        <operator id="rateCGScaler" spec="ScaleOperator" parameter="@rateCG" scaleFactor="0.5" weight="0.1"/>
+        <operator id="rateGTScaler" spec="ScaleOperator" parameter="@rateGT" scaleFactor="0.5" weight="0.1"/>
+
+        <operator id="gammaShapeScaler" spec="ScaleOperator" parameter="@gammaShape" scaleFactor="0.5" weight="0.1"/>
+        <operator id="serialTreeScaler" spec="ScaleOperator" scaleFactor="0.5" tree="@Tree" weight="3.0"/>
+        <operator id="serialTreeRootScaler" spec="ScaleOperator" rootOnly="true" scaleFactor="0.5" tree="@Tree" weight="3.0"/>
+        <operator id="serialUniformOperator" spec="Uniform" tree="@Tree" weight="30.0"/>
+        <operator id="serialSubtreeSlide" spec="SubtreeSlide" tree="@Tree" weight="15.0"/>
+        <operator id="serialNarrow" spec="Exchange" tree="@Tree" weight="15.0"/>
+        <operator id="serialWide" spec="Exchange" isNarrow="false" tree="@Tree" weight="3.0"/>
+        <operator id="serialWilsonBalding" spec="WilsonBalding" tree="@Tree" weight="3.0"/>
+        <operator id="becomeUninfectiousRateScaler" spec="ScaleOperator" parameter="@becomeUninfectiousRate" scaleFactor="0.75" weight="2.0"/>
+        <operator id="reproductiveNumberScaler" spec="ScaleOperator" parameter="@reproductiveNumber" scaleFactor="0.75" weight="10.0"/>
+        <operator id="samplingProportionScaler" spec="ScaleOperator" parameter="@samplingProportion" scaleFactor="0.75" weight="10.0"/>
+        <operator id="originScaler" spec="ScaleOperator" parameter="@origin" scaleFactor="0.75" weight="1.0"/>
+        <operator id="updownBD" spec="UpDownOperator" scaleFactor="0.75" weight="2.0">
+            <up idref="reproductiveNumber"/>
+            <down idref="becomeUninfectiousRate"/>
+        </operator>
+        {{ clock_scale_operator }}
+        {{ clock_updown_operator }}
+        <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
+        <!--LOGGER BLOCK-->
+        <logger id="tracelog" spec="Logger" fileName="{{ posterior_log }}" logEvery="{{ posterior_every }}" model="@posterior" sanitiseHeaders="true" sort="smart">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+            <log idref="treeLikelihood"/>
+            <log idref="gammaShape"/>
+            {{ substitution_logger }}
+            <log idref="BirthDeathSkylineSerial"/>
+            <log idref="origin"/>
+            <log idref="becomeUninfectiousRate"/>
+            <log idref="samplingProportion"/>
+            <log idref="reproductiveNumber"/>
+            {{ slice_loggers }}
+            {{ clock_logger }}
+            <log id="TreeHeight" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree"/>
+        </logger>
+        <!--POSTERIOR EVERY USED FOR SCREEN LOG-->
+        <logger id="screenlog" spec="Logger" fileName="" logEvery="{{ posterior_every }}"><log idref="posterior"/><log idref="likelihood"/><log idref="prior"/></logger>
+        <logger id="treelog" spec="Logger" fileName="{{ tree_log }}" logEvery="{{ tree_every }}" mode="tree"><log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree"/></logger>
+    </run>
+</beast>

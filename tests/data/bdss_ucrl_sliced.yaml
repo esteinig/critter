@@ -1,0 +1,87 @@
+model_info:
+  name: Birth death skyline serial with sliced sampling proportion
+  cite: https://doi.org/10.1073/pnas.1207965110 
+  info: > 
+    Birth death skyline serial model template with sliced sampling proportion prior 
+    (zero fixed pre-sampling) and UCRL clock for SNP alignments (not scaled).
+    Sampling proportion slices here are exemplified by a total sampling timespan of 
+    eleven years from the first sample to the last sample included in alignment.
+
+model_config:
+  type: birth_death_skyline_serial
+  fixed_clock: false
+
+clock_priors:
+
+  - type: ucrl_mean
+    dimension: 1
+    lower: 0
+    upper: +inf  # infinity as string --> float on parsing
+    initial: 
+      - 0.0005  
+    distribution:
+      - type: exponential
+        mean: 0.0004
+
+  - type: ucrl_sd
+    dimension: 1
+    lower: 0
+    upper: +inf  # infinity as string --> float on parsing
+    initial: 
+      - 0.3  
+    distribution:
+      - type: lognormal
+        mean: 0.01
+        sd: 0.001
+
+model_priors:
+
+  - type: origin
+    dimension: 1
+    lower: 0
+    upper: +inf
+    initial: 
+      - 2.0  
+    distribution:
+      - type: exponential
+        mean: 2.0
+
+  - type: sampling_proportion
+    sliced: true
+    intervals: 
+      - 11.1
+      - 0  # change points (past --> last sample) + small float (e.g. pre-sampling period: present time - 0, first sample - 13 years + 0.1)
+    dimension: 2
+    lower: 0
+    upper: 1.0
+    initial: 
+      - 0  #  pre-sampling proportion fixed to 0
+      - 0.01
+    distribution:
+      - type: exponential
+        mean: 1e-08
+      - type: beta
+        alpha: 1.0
+        beta: 1.0
+
+  - type: reproductive_number
+    dimension: 1
+    lower: 0
+    upper: +inf
+    initial: 
+      - 2.0
+    distribution:
+      - type: gamma
+        alpha: 2.0
+        beta: 2.0
+
+  - type: become_uninfectious_rate
+    dimension: 1
+    lower: 0
+    upper: +inf
+    initial: 
+      - 1.0
+    distribution:
+      - type: lognormal
+        mean: 1.0
+        sd: 1.0

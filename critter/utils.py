@@ -1,4 +1,10 @@
 from uuid import uuid4
+from pathlib import Path
+import datetime
+from collections import Counter
+
+
+NULL = ['-', 'none', 'null', 'missing', 'na', 'NA']
 
 
 def get_uuid(short: bool = False) -> str:
@@ -8,3 +14,86 @@ def get_uuid(short: bool = False) -> str:
         return uuid[:8]
     else:
         return uuid
+
+
+def get_year_fraction(date: datetime.datetime):
+    start = datetime.date(date.year, 1, 1).toordinal()
+    year_length = datetime.date(date.year+1, 1, 1).toordinal() - start
+    return date.year + float(date.toordinal() - start) / year_length
+
+
+def get_date_range(file: Path = None, log_file: Path = None, sep: str = " ", datefmt: bool = False, header: bool = False):
+    """ Date range and delta from date file (name and float) """
+    nan = ["-", "NA", "NaN", "nan"]
+
+    if file is None and log_file is None:
+        raise ValueError("Date file or log file must be specified")
+
+    if not log_file:
+        with file.open('r') as fin:
+            dates = [
+                line.strip().split(sep)[1] for line in fin
+            ]
+            if header:
+                dates = dates[1:]
+            if datefmt:
+                dates = [get_year_fraction(datetime.datetime.strptime(date, "%d/%m/%Y")) for date in dates]
+            else:
+                dates = [float(date) for date in dates if date not in nan]
+    else:
+        with log_file.open('r') as fin:
+            dates = []
+            for line in fin:
+                if 'dateTrait' in line:
+                    dates += [float(d.split("=")[1]) for d in line.split('value="')[1].replace('">', '').split(',')]
+            if not dates:
+                raise ValueError("Could not fine dates in log file")
+
+    counts = Counter(dates)
+
+    min_date, max_date = min(dates), max(dates)
+    delta = max_date - min_date
+    return max_date, min_date, delta, counts
+
+
+def get_float_dates(dates: dict) -> dict:
+
+    return {
+        name: get_year_fraction(
+            datetime.datetime.strptime(date, "%d/%m/%Y")
+        ) for name, date in dates.items()
+    }
+
+
+def read_dates(date_file: Path) -> dict:
+
+    # Names always in column 1, dates always in column 2, no header
+    with date_file.open("r") as date_file_input:
+        dates = {
+            line.strip().split()[0]: line.strip().split()[1] 
+            for line in date_file_input
+        } # name - date
+    
+    return dates
+
+
+def dates_from_fasta(fasta: Path, date_file: Path, id_sep: str = "|", date_idx: int = 2,  datefmt: bool = False):
+
+    with fasta.open("r") as fa_file, date_file.open("w") as da_file:
+        for line in fa_file:
+            if line.startswith(">"):
+                content = line.strip().split(" ")
+                identifier = content[0]
+                data = identifier.split(id_sep)
+                try:
+                    seq_date = data[date_idx]  # not first usually
+                except IndexError:
+                    raise IndexError("Could not extract sequence name from sequence identifier")
+
+                if datefmt:
+                    date = get_year_fraction(datetime.datetime.strptime(seq_date, "%d/%m/%Y"))
+                else:
+                    date = float(seq_date)
+
+                seq_name = identifier.replace(">", "")
+                da_file.write(f"{seq_name}\t{date}\n")
