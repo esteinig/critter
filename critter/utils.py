@@ -22,16 +22,32 @@ def get_year_fraction(date: datetime.datetime):
     return date.year + float(date.toordinal() - start) / year_length
 
 
-def get_date_range(file: Path, sep: str = " ", datefmt: bool = False):
+def get_date_range(file: Path = None, log_file: Path = None, sep: str = " ", datefmt: bool = False, header: bool = False):
     """ Date range and delta from date file (name and float) """
-    with file.open('r') as fin:
-        dates = [
-            line.strip().split(sep)[1] for line in fin
-        ]
-        if datefmt:
-            dates = [get_year_fraction(datetime.datetime.strptime(date, "%d/%m/%Y")) for date in dates]
-        else:
-            dates = [float(date) for date in dates]
+    nan = ["-", "NA", "NaN", "nan"]
+
+    if file is None and log_file is None:
+        raise ValueError("Date file or log file must be specified")
+
+    if not log_file:
+        with file.open('r') as fin:
+            dates = [
+                line.strip().split(sep)[1] for line in fin
+            ]
+            if header:
+                dates = dates[1:]
+            if datefmt:
+                dates = [get_year_fraction(datetime.datetime.strptime(date, "%d/%m/%Y")) for date in dates]
+            else:
+                dates = [float(date) for date in dates if date not in nan]
+    else:
+        with log_file.open('r') as fin:
+            dates = []
+            for line in fin:
+                if 'dateTrait' in line:
+                    dates += [float(d.split("=")[1]) for d in line.split('value="')[1].replace('">', '').split(',')]
+            if not dates:
+                raise ValueError("Could not fine dates in log file")
 
     counts = Counter(dates)
 

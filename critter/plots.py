@@ -11,15 +11,21 @@ BDSKY_KEEP = ("becomeUninfectiousRate", "samplingProportion", "reproductiveNumbe
 
 
 def plot_bdsky_posterior_summary(
-        posterior: PosteriorDiagnostic,
-        posterior_prior: Optional[PosteriorDiagnostic],
-        output: Path
+    posterior: PosteriorDiagnostic,
+    output: Path,
+    posterior_prior: Optional[PosteriorDiagnostic],
+    size: Optional[str]
 ):
 
     keep = [column for column in posterior.data.columns if column.startswith(BDSKY_KEEP)]
 
+    if size:
+        w, h  = [int(s) for s in size.split(",")]
+    else:
+        w, h = 14, 10
+
     fig, axes = plt.subplots(
-        nrows=len(keep), ncols=1, figsize=(14, 10)
+        nrows=len(keep), ncols=1, figsize=(w, h)
     )
     styles = {'color': 'black'}
     for i, column in enumerate(keep):

@@ -95,7 +95,8 @@ def re_intervals(
 def posterior_dist(
     posterior_log: Path = typer.Argument(..., help="Posterior log file of model run"),
     prior_log: Optional[Path] = typer.Option(None, help="Log of same model run with sampling from prior"),
-    output: Optional[Path] = typer.Option('posterior.png', help="Output file for posterior summary")
+    output: Optional[Path] = typer.Option('posterior.png', help="Output file for posterior summary"),
+    size: Optional[str] = typer.Option('14,10', help="Output plot sizes"),
 ):
     """
     Create a plot of model parameter posterior density distributions
@@ -109,19 +110,25 @@ def posterior_dist(
         prior = None
 
     plot_file = post.log.with_suffix(".png")
-    plot_bdsky_posterior_summary(posterior=post, posterior_prior=prior, output=plot_file)
+    plot_bdsky_posterior_summary(
+        posterior=post, posterior_prior=prior, output=output if output else plot_file, size=size
+    )
 
 
 @utils_app.command()
 def date_range(
     dates: Path = typer.Argument(..., help="Date file, no header, tab-seperated, name [0] dates [1]"),
-    datefmt: Optional[bool] = typer.Option(False, help="Dates in date file are in format: DD/MM/YYYY")
+    datefmt: Optional[bool] = typer.Option(False, help="Dates in date file are in format: DD/MM/YYYY"),
+    header: Optional[bool] = typer.Option(False, help="Header is present"),
 ):
     """
     Output the date range for a date file
     """
 
-    max_date, min_date, delta, counts = get_date_range(file=dates, sep='\t', datefmt=datefmt)
+    if dates.suffix == ".log":
+        max_date, min_date, delta, counts = get_date_range(log_file=dates)
+    else:
+        max_date, min_date, delta, counts = get_date_range(file=dates, sep='\t', datefmt=datefmt, header=header)
     print(f"{min_date} - {max_date} [{delta}]")
     print(counts)
 
