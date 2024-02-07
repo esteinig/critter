@@ -43,9 +43,9 @@ def plot_bdsky_posterior_summary(
     fig.savefig(output)
 
 
-def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: Path, last_sample: float = None):
+def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: Path, last_sample: float = None, distribution: bool = True, distribution_color: str = "#feb424", distribution_split: bool = False):
 
-    """ Dispaly mean reproductive number + 95% HPD across time slices of equal size """
+    """ Display mean reproductive number + 95% HPD across time slices of equal size """
 
     data_frame = []
     for _, row in posterior_diagnostic.summary.iterrows():
@@ -59,7 +59,7 @@ def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: P
             data_frame.append([interval, row['Mean'], row['Lower HPD'], row['Upper HPD']])
 
     df = pandas.DataFrame(data_frame, columns=['Interval', 'Mean', 'Lower', 'Upper'])
-
+        
     if last_sample:
         # Scale intervals based on mean tree height
         # should be used only for equally sized intervals
@@ -79,39 +79,79 @@ def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: P
     else:
         interval_labels = df['Interval'].tolist()
 
-    fig, axes = plt.subplots(
-        nrows=1, ncols=1, figsize=(14, 10)
-    )
+    if distribution:
 
-    ax = sns.pointplot(x='Interval', y='Mean', data=df, ci=None, ax=axes, join=False, color="black")
+        fig, axes = plt.subplots(
+            nrows=1, ncols=1, figsize=(14, 10)
+        )
 
-    # Find the x,y coordinates for each point
-    x_coords = []
-    y_coords = []
-    for point_pair in ax.collections:
-        for x, y in point_pair.get_offsets():
-            x_coords.append(x)
-            y_coords.append(y)
+        re_data = posterior_diagnostic.data.loc[:, posterior_diagnostic.data.columns.str.startswith('reproductiveNumber')]
 
-    # Calculate the lenght of the error bars around the mean
-    lower = []
-    upper = []
-    for _, row in df.iterrows():
-        lower.append(row['Mean'] - row['Lower'])
-        upper.append(row['Upper'] - row['Mean'])
+        column_names = []
+        for c in re_data.columns:
 
-    ax.errorbar(x_coords, y_coords, yerr=[lower, upper], fmt=' ', zorder=-1, ecolor="black")
-    plt.axhline(y=1.0, color='black', linestyle='--')
+            try:
+                interval = re.findall(r'[0-9]+', c)[0]
+            except IndexError:
+                raise IndexError('Could not find the interval number in reproductiveNumber')
+            
 
-    ax.set_ylim(ymin=0)
-    ax.set_xticklabels(interval_labels)
+            column_names.append(interval)
+        re_data.columns = column_names
 
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
-    plt.ylabel("Mean reproductive number\n")
-    plt.xlabel("")
-    plt.tight_layout()
-    fig.savefig(output)
+        re_data = re_data.melt()
+        ax = sns.violinplot(data=re_data, y="value", x="variable", color=distribution_color, split=distribution_split, ax=axes)
+        plt.axhline(y=1.0, color='black', linestyle='--')
+
+        ax.set_ylim(ymin=0)
+        ax.set_xticklabels(interval_labels)
+
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.ylabel("Mean reproductive number\n")
+        plt.xlabel("")
+        plt.tight_layout()
+        fig.savefig(output.with_suffix(".dist.png"))
+    
+    else:
+        
+        fig, axes = plt.subplots(
+            nrows=1, ncols=1, figsize=(14, 10)
+        )
+
+
+        ax = sns.pointplot(x='Interval', y='Mean', data=df, errorbar=None, ax=axes, join=False, color="black")
+    
+        # Find the x,y coordinates for each point
+        x_coords = []
+        y_coords = []
+        for point_pair in ax.collections:
+            for x, y in point_pair.get_offsets():
+                x_coords.append(x)
+                y_coords.append(y)
+
+        # Calculate the lenght of the error bars around the mean
+        lower = []
+        upper = []
+        for _, row in df.iterrows():
+            lower.append(row['Mean'] - row['Lower'])
+            upper.append(row['Upper'] - row['Mean'])
+
+        print(df)
+        print(ax.collections)
+
+        ax.errorbar(x_coords, y_coords, yerr=[lower, upper], fmt=' ', zorder=-1, ecolor="black")
+        plt.axhline(y=1.0, color='black', linestyle='--')
+
+        ax.set_ylim(ymin=0)
+        ax.set_xticklabels(interval_labels)
+
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.ylabel("Mean reproductive number\n")
+        plt.xlabel("")
+        plt.tight_layout()
+        fig.savefig(output.with_suffix(".hpd.png"))
 
 
 def plot_sample_date_distribution(date_files: List[Path], datefmt: bool = False, equal_slices: int = 0, output: Path = "date_density.png"):
