@@ -43,7 +43,7 @@ def plot_bdsky_posterior_summary(
     fig.savefig(output)
 
 
-def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: Path, last_sample: float = None, distribution: bool = True, distribution_color: str = "#feb424", distribution_split: bool = False):
+def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: Path, last_sample: float = None, distribution: bool = True, distribution_color: str = "#feb424", distribution_split: bool = False, include_mean: bool = False):
 
     """ Display mean reproductive number + 95% HPD across time slices of equal size """
 
@@ -89,18 +89,21 @@ def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: P
 
         column_names = []
         for c in re_data.columns:
-
             try:
                 interval = re.findall(r'[0-9]+', c)[0]
             except IndexError:
                 raise IndexError('Could not find the interval number in reproductiveNumber')
-            
-
             column_names.append(interval)
+
         re_data.columns = column_names
 
         re_data = re_data.melt()
+
+        if include_mean:
+            ax = sns.pointplot(x='Interval', y='Mean', data=df, errorbar=None, ax=axes, join=False, color="red", zorder=99)
+
         ax = sns.violinplot(data=re_data, y="value", x="variable", color=distribution_color, split=distribution_split, ax=axes)
+        
         plt.axhline(y=1.0, color='black', linestyle='--')
 
         ax.set_ylim(ymin=0)
@@ -108,9 +111,10 @@ def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: P
 
         plt.xticks(fontsize=14)
         plt.yticks(fontsize=14)
-        plt.ylabel("Mean reproductive number\n")
+        plt.ylabel("Posterior estimate (Re)\n")
         plt.xlabel("")
         plt.tight_layout()
+        fig.savefig(output.with_suffix(".dist.svg"))
         fig.savefig(output.with_suffix(".dist.png"))
     
     else:
@@ -137,8 +141,6 @@ def plot_equal_re_intervals(posterior_diagnostic: PosteriorDiagnostic, output: P
             lower.append(row['Mean'] - row['Lower'])
             upper.append(row['Upper'] - row['Mean'])
 
-        print(df)
-        print(ax.collections)
 
         ax.errorbar(x_coords, y_coords, yerr=[lower, upper], fmt=' ', zorder=-1, ecolor="black")
         plt.axhline(y=1.0, color='black', linestyle='--')
