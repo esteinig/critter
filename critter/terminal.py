@@ -65,6 +65,7 @@ def model(
 @bdsky_app.command()
 def summary(
     logs: List[Path],
+    values: Optional[Path] = typer.Option('posterior.tsv', help="Raw posterior values output file"),
     output: Optional[Path] = typer.Option('summary.tsv', help="Output file for posterior summary")
 ):
     """
@@ -72,14 +73,21 @@ def summary(
     """
 
     diagnostics = [PosteriorDiagnostic(log) for log in logs]
+
     diagnostic_summary = concat([d.summary for d in diagnostics])
     diagnostic_summary.to_csv(output, sep='\t', index=False)
+
+    if values:
+        posteriors = concat([d.data for d in diagnostics])
+        posteriors.to_csv(values, sep="\t", index=False)
 
 
 @bdsky_app.command()
 def re_intervals(
     logs: List[Path],
-    last: float = typer.Option(None, help="Last sample date (float)")
+    last: float = typer.Option(None, help="Last sample date (float)"),
+    color: str = typer.Option(None, help="Distribution color (hex)"),
+    split: bool = typer.Option(None, help="Distribution split")
 ):
     """
     Create a plot of Re estimates (mean, 95% HPD) 
@@ -87,8 +95,7 @@ def re_intervals(
 
     diagnostics = [PosteriorDiagnostic(log) for log in logs]
     for diagnostic in diagnostics:
-        plot_file = diagnostic.log.with_suffix(".png")
-        plot_equal_re_intervals(posterior_diagnostic=diagnostic, output=plot_file, last_sample=last)
+        plot_equal_re_intervals(posterior_diagnostic=diagnostic, output=diagnostic.log, last_sample=last, distribution_color=color, distribution_split=split)
 
 
 @bdsky_app.command()
